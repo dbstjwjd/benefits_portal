@@ -1,0 +1,207 @@
+/* 폼 목록 / 작성 / 완료 / 신청 내역 화면 전용. theme.css 다음에 로드한다. */
+
+.form-desc {
+    margin-top: 10px;
+    font-size: 13.5px;
+    color: var(--gray-1);
+    line-height: 1.6;
+}
+
+.page .alert,
+.page .info {
+    margin-top: 18px;
+}
+
+/* ── 질문 ──────────────────────────────────────────────── */
+
+.question {
+    margin-top: 28px;
+}
+
+.section {
+    margin-top: 36px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--title);
+}
+
+.q-title {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--title);
+}
+
+.q-title .req {
+    color: var(--error);
+}
+
+.question input[type="text"],
+.question input[type="number"],
+.question input[type="date"],
+.question select,
+.question textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--r-control);
+    padding: 0 16px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fff;
+}
+
+.question input[type="text"],
+.question input[type="number"],
+.question input[type="date"],
+.question select {
+    height: var(--h-input);
+}
+
+.question textarea {
+    padding: 12px 16px;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.question input:focus,
+.question select:focus,
+.question textarea:focus {
+    outline: none;
+    border-color: var(--main);
+}
+
+.question input[readonly],
+.question input:disabled,
+.question select:disabled,
+.question textarea:disabled {
+    background: var(--surface);
+    color: var(--gray-1);
+}
+
+/* ── 선택지 ────────────────────────────────────────────── */
+
+.choices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.choice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-control);
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.choice:has(input:checked) {
+    border-color: var(--main);
+    background: var(--mint);
+    font-weight: 600;
+}
+
+.choice:has(input:disabled) {
+    cursor: default;
+    color: var(--gray-1);
+}
+
+.choice input {
+    accent-color: var(--main);
+    width: 18px;
+    height: 18px;
+}
+
+/* ── 주소 ──────────────────────────────────────────────── */
+
+.address {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.zip-row {
+    display: flex;
+    gap: 8px;
+}
+
+.zip-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+.zip-btn {
+    flex: 0 0 auto;
+    height: var(--h-input);
+    padding: 0 16px;
+    border: 1px solid var(--main);
+    border-radius: var(--r-control);
+    background: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--main);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.zip-btn:active {
+    background: var(--mint);
+}
+
+.unsupported {
+    padding: 12px 14px;
+    border: 1px dashed var(--line);
+    border-radius: var(--r-control);
+    font-size: 13px;
+    color: var(--gray-2);
+}
+
+/* ── 제출 ──────────────────────────────────────────────── */
+
+.submit-btn {
+    margin-top: 36px;
+}
+
+/* ── 완료 화면 ─────────────────────────────────────────── */
+
+.done-page {
+    text-align: center;
+    padding-top: 56px;
+}
+
+.done-page .char {
+    height: 96px;
+    width: auto;
+}
+
+.done-title {
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--title);
+}
+
+.done-form {
+    margin-top: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--main-dark);
+}
+
+.done-notice {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--gray-2);
+}
+
+.done-page .btn-primary {
+    margin-top: 32px;
+}

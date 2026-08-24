@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IDIS 직원 복리후생 시스템</title>
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css">
+    <link rel="stylesheet" th:href="@{/css/login.css}" href="/css/login.css">
+</head>
+
+<body>
+    <main class="login">
+        <div class="hero">
+            <img class="robot" th:src="@{/image/robot.png}" src="/image/robot.png" alt="IDIS 로봇 캐릭터">
+        </div>
+
+        <div class="content">
+            <div class="brand">
+                <img class="logo" th:src="@{/image/idis_logo.png}" src="/image/idis_logo.png" alt="IDIS">
+                <h1 class="sub">직원 복리후생 시스템</h1>
+                <p class="notice">복리후생 신청은 이곳에서 진행됩니다</p>
+            </div>
+
+            <form id="loginForm" th:action="@{/login}" action="/login" method="post" novalidate>
+                <p class="alert" th:if="${param.error}">이름 또는 전화번호가 일치하지 않습니다</p>
+
+                <div class="field" id="nameField">
+                    <label for="name">이름</label>
+                    <div class="input-box">
+                        <img class="input-icon" th:src="@{/image/icon-user.svg}" src="/image/icon-user.svg" alt="">
+                        <input id="name" name="name" type="text" placeholder="이름을 입력하세요" autocomplete="name">
+                    </div>
+                    <p class="msg" id="nameMsg"></p>
+                </div>
+                <div class="field" id="phoneField">
+                    <label for="phone">전화번호</label>
+                    <div class="input-box">
+                        <img class="input-icon" th:src="@{/image/icon-phone.svg}" src="/image/icon-phone.svg" alt="">
+                        <input id="phone" name="phone" type="tel" inputmode="numeric" placeholder="010-0000-0000"
+                            autocomplete="tel" maxlength="13">
+                    </div>
+                    <p class="msg" id="phoneMsg"></p>
+                </div>
+
+                <button class="login-btn" type="submit">로그인</button>
+
+                <div class="divider" aria-hidden="true">
+                    <span class="line"></span>
+                    <span class="or">또는</span>
+                    <span class="line"></span>
+                </div>
+
+                <button class="btn-outline" type="button" id="contactBtn">
+                    <img class="btn-icon" th:src="@{/image/icon-lock.svg}" src="/image/icon-lock.svg" alt="">
+                    로그인이 안 되나요?
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <dialog id="contactModal">
+        <h2>관리자 문의</h2>
+        <p>
+            로그인이 안 되거나 등록된 이름·전화번호가 변경된 경우<br>
+            복리후생 담당자(김혜지 또는 정윤서 사원)에게 문의해주세요.
+        </p>
+        <!-- TODO: 담당 부서/연락처가 정해지면 여기에 추가 -->
+        <button class="modal-close" type="button" id="contactClose">닫기</button>
+    </dialog>
+
+    <script>
+        const form = document.getElementById("loginForm");
+        const nameInput = document.getElementById("name");
+        const phoneInput = document.getElementById("phone");
+
+        function setError(fieldId, msgId, message) {
+            document.getElementById(fieldId).classList.add("err");
+            document.getElementById(msgId).textContent = message;
+        }
+
+        function clearError(fieldId) {
+            document.getElementById(fieldId).classList.remove("err");
+        }
+
+        phoneInput.addEventListener("input", () => {
+            const digits = phoneInput.value.replace(/\D/g, "").slice(0, 11);
+            let formatted = digits;
+            if (digits.length > 7) formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+            else if (digits.length > 3) formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+            phoneInput.value = formatted;
+        });
+
+        nameInput.addEventListener("input", () => clearError("nameField"));
+        phoneInput.addEventListener("input", () => clearError("phoneField"));
+
+        form.addEventListener("submit", (e) => {
+            let valid = true;
+
+            if (!nameInput.value.trim()) {
+                setError("nameField", "nameMsg", "이름을 입력하세요");
+                valid = false;
+            }
+
+            const digits = phoneInput.value.replace(/\D/g, "");
+            if (!digits) {
+                setError("phoneField", "phoneMsg", "전화번호를 입력하세요");
+                valid = false;
+            } else if (!/^01[016789]\d{7,8}$/.test(digits)) {
+                setError("phoneField", "phoneMsg", "전화번호 형식이 올바르지 않습니다");
+                valid = false;
+            }
+
+            if (!valid) e.preventDefault();
+        });
+
+        const contactModal = document.getElementById("contactModal");
+        document.getElementById("contactBtn").addEventListener("click", () => contactModal.showModal());
+        document.getElementById("contactClose").addEventListener("click", () => contactModal.close());
+        contactModal.addEventListener("click", (e) => {
+            if (e.target === contactModal) contactModal.close();
+        });
+    </script>
+</body>
+
+</html>

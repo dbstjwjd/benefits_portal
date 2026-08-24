@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>신청 완료 | IDIS</title>
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css">
+    <link rel="stylesheet" th:href="@{/css/forms.css}" href="/css/forms.css">
+</head>
+
+<body class="app">
+    <div class="head">
+        <header class="top">
+            <img class="logo" th:src="@{/image/idis_logo.png}" src="/image/idis_logo.png" alt="IDIS">
+            <form th:action="@{/logout}" action="/logout" method="post">
+                <button class="logout-btn" type="submit">로그아웃</button>
+            </form>
+        </header>
+    </div>
+
+    <main class="page done-page">
+        <img class="char" th:src="@{/image/domi.png}" src="/image/domi.png" alt="도미">
+        <h1 class="done-title">신청이 완료되었습니다</h1>
+        <p class="done-form" th:text="${form.title}">2026년 추석 선물 신청</p>
+        <p class="done-notice" th:if="${form.endAt != null}"
+            th:text="${#temporals.format(form.endAt, 'yyyy.MM.dd')} + ' 마감 전까지 수정할 수 있습니다'">
+            마감 전까지 수정할 수 있습니다
+        </p>
+
+        <a class="btn-primary" th:href="@{/forms/{id}(id=${form.id})}" href="#">신청 내용 확인 / 수정</a>
+        <a class="text-btn" th:href="@{/forms}" href="/forms">목록으로</a>
+    </main>
+</body>
+
+</html>

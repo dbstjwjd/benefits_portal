@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${form.title} + ' | IDIS'">복리후생 신청 | IDIS</title>
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css">
+    <link rel="stylesheet" th:href="@{/css/forms.css}" href="/css/forms.css">
+</head>
+
+<body class="app">
+    <div class="head">
+        <header class="top">
+            <a class="back" th:href="@{/forms}" href="/forms">← 목록</a>
+            <form th:action="@{/logout}" action="/logout" method="post">
+                <button class="logout-btn" type="submit">로그아웃</button>
+            </form>
+        </header>
+        <div class="head-title">
+            <h1 class="title" th:text="${form.title}">2026년 추석 선물 신청</h1>
+            <p class="form-desc" th:if="${form.description}" th:text="${form.description}">설명</p>
+            <p class="card-period" th:if="${form.endAt != null}"
+                th:text="'~ ' + ${#temporals.format(form.endAt, 'yyyy.MM.dd')} + ' 마감'">~ 마감</p>
+        </div>
+    </div>
+
+    <main class="page">
+        <p class="alert" th:if="${submitError}" th:text="${submitError}"></p>
+        <p class="info readonly" th:if="${readOnly and submitError == null}">
+            마감되어 더 이상 수정할 수 없습니다. 제출하신 내용입니다.
+        </p>
+        <p class="info" th:if="${!readOnly and submitted and submitError == null}">
+            이미 신청하셨습니다. 마감 전까지 내용을 수정할 수 있습니다.
+        </p>
+
+        <form th:action="@{/forms/{id}(id=${form.id})}" method="post">
+            <div class="question" th:each="question : ${form.questions}"
+                th:with="key='q' + ${question.id}" th:switch="${question.type.name()}">
+
+                <h2 class="section" th:case="'SECTION'" th:text="${question.title}">구분</h2>
+
+                <th:block th:case="*">
+                    <label class="q-title" th:for="${key}">
+                        <span th:text="${question.title}">질문</span>
+                        <span class="req" th:if="${question.required}">*</span>
+                    </label>
+
+                    <div th:switch="${question.type.name()}">
+                        <input th:case="'SHORT_TEXT'" type="text" th:id="${key}" th:name="${key}"
+                            th:value="${values.get(key)}" th:required="${question.required}"
+                            th:disabled="${readOnly}">
+
+                        <textarea th:case="'LONG_TEXT'" rows="4" th:id="${key}" th:name="${key}"
+                            th:text="${values.get(key)}" th:required="${question.required}"
+                            th:disabled="${readOnly}"></textarea>
+
+                        <input th:case="'NUMBER'" type="number" th:id="${key}" th:name="${key}"
+                            th:value="${values.get(key)}" th:required="${question.required}"
+                            th:disabled="${readOnly}">
+
+                        <input th:case="'DATE'" type="date" th:id="${key}" th:name="${key}"
+                            th:value="${values.get(key)}" th:required="${question.required}"
+                            th:disabled="${readOnly}">
+
+                        <div th:case="'SINGLE_CHOICE'" class="choices">
+                            <label class="choice" th:each="choice : ${question.choices}">
+                                <input type="radio" th:name="${key}" th:value="${choice.id}"
+                                    th:checked="${values.get(key) == #strings.toString(choice.id)}"
+                                    th:required="${question.required}" th:disabled="${readOnly}">
+                                <span th:text="${choice.content}">선택지</span>
+                            </label>
+                        </div>
+
+                        <select th:case="'DROPDOWN'" th:id="${key}" th:name="${key}"
+                            th:required="${question.required}" th:disabled="${readOnly}">
+                            <option value="">선택하세요</option>
+                            <option th:each="choice : ${question.choices}" th:value="${choice.id}"
+                                th:text="${choice.content}"
+                                th:selected="${values.get(key) == #strings.toString(choice.id)}">선택지</option>
+                        </select>
+
+                        <div th:case="'ADDRESS'" class="address">
+                            <div class="zip-row">
+                                <input type="text" th:id="${key} + '_zipcode'" th:name="${key} + '_zipcode'"
+                                    th:value="${values.get(key + '_zipcode')}" placeholder="우편번호" readonly
+                                    th:required="${question.required}">
+                                <button type="button" class="zip-btn" th:if="${!readOnly}" th:attr="data-postcode=${key}">우편번호 검색</button>
+                            </div>
+                            <input type="text" th:id="${key} + '_address'" th:name="${key} + '_address'"
+                                th:value="${values.get(key + '_address')}" placeholder="주소" readonly
+                                th:required="${question.required}">
+                            <input type="text" th:id="${key} + '_detail'" th:name="${key} + '_detail'"
+                                th:value="${values.get(key + '_detail')}" placeholder="상세주소 (동/호수 등)"
+                                th:disabled="${readOnly}">
+                        </div>
+
+                        <p class="unsupported" th:case="*"
+                            th:text="'아직 지원하지 않는 질문 유형입니다 (' + ${question.type} + ')'">미지원</p>
+                    </div>
+                </th:block>
+            </div>
+
+            <button class="submit-btn" type="submit" th:if="${!readOnly}"
+                th:text="${submitted} ? '수정하기' : '신청하기'">신청하기</button>
+        </form>
+    </main>
+
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script>
+        document.querySelectorAll("[data-postcode]").forEach((button) => {
+            button.addEventListener("click", () => {
+                const key = button.dataset.postcode;
+                new daum.Postcode({
+                    oncomplete: (data) => {
+                        document.getElementById(key + "_zipcode").value = data.zonecode;
+                        document.getElementById(key + "_address").value = data.roadAddress || data.jibunAddress;
+                        document.getElementById(key + "_detail").focus();
+                    }
+                }).open();
+            });
+        });
+    </script>
+</body>
+
+</html>

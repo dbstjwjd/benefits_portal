@@ -1,0 +1,188 @@
+/* 로그인 화면 전용. theme.css 다음에 로드한다. */
+
+html,
+body {
+    height: 100%;
+}
+
+.login {
+    max-width: 430px;
+    min-height: 100dvh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+}
+
+/* ── 상단 그래픽 (민트 패턴 + 로봇) ─────────────────────── */
+
+.hero {
+    position: relative;
+    height: 220px;
+    background: url("/image/login-header-bg.png") center / cover no-repeat;
+}
+
+.hero .robot {
+    position: absolute;
+    top: 40px;
+    right: 20px;
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+}
+
+/* ── 브랜드 ────────────────────────────────────────────── */
+
+.content {
+    padding: 40px 24px 24px;
+}
+
+.brand .logo {
+    height: 29px;
+    width: auto;
+    display: block;
+}
+
+.sub {
+    margin-top: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--title);
+}
+
+.notice {
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--gray-1);
+}
+
+/* ── 입력 ──────────────────────────────────────────────── */
+
+form {
+    margin-top: 32px;
+}
+
+.login .alert {
+    margin-bottom: 18px;
+}
+
+.field {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--title);
+    margin-bottom: 8px;
+}
+
+.input-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    height: var(--h-input);
+    border: 1px solid var(--line);
+    border-radius: var(--r-control);
+    background: #fff;
+    transition: border-color .15s;
+}
+
+.input-box:focus-within {
+    border-color: var(--main);
+}
+
+.input-icon {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+
+.input-box input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    padding: 0;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--ink);
+    background: transparent;
+}
+
+.input-box input:focus {
+    outline: none;
+}
+
+.input-box input::placeholder {
+    color: var(--gray-2);
+}
+
+.field.err .input-box {
+    border-color: var(--error);
+}
+
+.msg {
+    display: none;
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--error);
+    line-height: 1.4;
+}
+
+.field.err .msg {
+    display: block;
+}
+
+/* ── 버튼 영역 ─────────────────────────────────────────── */
+
+.login-btn {
+    margin-top: 12px;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.divider .line {
+    flex: 1;
+    border-top: 1px solid var(--line);
+}
+
+.divider .or {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-2);
+}
+
+.btn-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* ── 데스크탑 ──────────────────────────────────────────── */
+
+@media (min-width: 600px) {
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+    }
+
+    .login {
+        width: var(--shell);
+        max-width: 100%;
+        min-height: auto;
+        margin: 0;
+        border-radius: var(--r-shell);
+        box-shadow: 0 6px 24px rgba(17, 24, 32, .08);
+        overflow: hidden;
+    }
+}
