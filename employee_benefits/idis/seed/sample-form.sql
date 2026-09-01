@@ -47,6 +47,15 @@ INSERT INTO choice (id, question_id, content, image_path, sort_order) VALUES
 (2, 1, '프리미엄 과일 세트',  NULL, 2),
 (3, 1, '건강식품 세트',       NULL, 3);
 
+-- 복수 선택 질문 (체크박스)
+INSERT INTO question (id, created_at, updated_at, form_id, type, title, required, sort_order, config) VALUES
+(9, NOW(6), NOW(6), 1, 'MULTI_CHOICE', '함께 신청할 항목을 선택해주세요 (복수 선택 가능)', b'0', 5, NULL);
+
+INSERT INTO choice (id, question_id, content, image_path, sort_order) VALUES
+(11, 9, '독감 예방접종 (10월 예정)', NULL, 1),
+(12, 9, '단체 티셔츠',              NULL, 2),
+(13, 9, '건강검진',                 NULL, 3);
+
 -- ── 2번 폼 질문 ───────────────────────────────────────────────────
 INSERT INTO question (id, created_at, updated_at, form_id, type, title, required, sort_order, config) VALUES
 (5, NOW(6), NOW(6), 2, 'SINGLE_CHOICE', '케이크 종류를 선택해주세요', b'1', 1, NULL),

@@ -37,10 +37,6 @@ public class Answer {
     @Builder.Default
     private List<AnswerChoice> answerChoices = new ArrayList<>();
 
-    @OneToMany(mappedBy = "answer", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Attachment> attachments = new ArrayList<>();
-
     void assignResponse(Response response) {
         this.response = response;
     }
@@ -50,13 +46,8 @@ public class Answer {
         answerChoice.assignAnswer(this);
     }
 
-    public void addAttachment(Attachment attachment) {
-        attachments.add(attachment);
-        attachment.assignAnswer(this);
-    }
-
     public boolean isEmpty() {
         boolean noValue = value == null || value.isBlank();
-        return noValue && answerChoices.isEmpty() && attachments.isEmpty();
+        return noValue && answerChoices.isEmpty();
     }
 }

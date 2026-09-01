@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{admin/layout :: head('응답 현황')}"></head>
+
+<body class="admin">
+    <div th:replace="~{admin/layout :: tooNarrow}"></div>
+
+    <div class="admin-shell">
+        <aside th:replace="~{admin/layout :: side('responses', ${admin})}"></aside>
+
+        <main class="admin-main">
+            <p class="toast err" th:if="${error}" th:text="${error}"></p>
+
+            <!--
+                폼이 하나도 없을 때. 다른 관리자 화면과 같은 뼈대(제목 + 요약 카드)를 두고
+                내용만 빈 상태로 바꾼다. 고를 폼이 없으므로 선택 드롭다운은 그리지 않는다.
+            -->
+            <th:block th:if="${noForms}">
+                <div class="admin-head">
+                    <h1>응답 현황</h1>
+                </div>
+
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <p class="label">응답</p>
+                        <p class="value">0명</p>
+                    </div>
+                    <div class="summary-card">
+                        <p class="label">미응답</p>
+                        <p class="value">0명</p>
+                    </div>
+                    <div class="summary-card">
+                        <p class="label">응답률</p>
+                        <p class="value">0%</p>
+                    </div>
+                    <div class="summary-card">
+                        <p class="label">남은 기간</p>
+                        <p class="value">-</p>
+                    </div>
+                </div>
+
+                <div class="admin-empty">
+                    <img th:src="@{/image/robot-awkward.png}" src="/image/robot-awkward.png" alt="">
+                    <p>등록된 폼이 없습니다</p>
+                </div>
+            </th:block>
+
+            <th:block th:unless="${noForms}">
+                <!-- 폼 선택 + 엑셀 -->
+                <div class="resp-top">
+                    <div class="form-picker" id="formPicker">
+                        <button class="picker-btn" type="button" id="pickerBtn"
+                            aria-haspopup="listbox" aria-expanded="false">
+                            <span th:text="${overview.title()}">추석 선물 신청</span>
+                            <span class="caret" aria-hidden="true">▾</span>
+                        </button>
+
+                        <div class="picker-menu" id="pickerMenu" role="listbox" hidden>
+                            <th:block th:with="opens=${#lists.size(options)}">
+                                <p class="group" th:if="${options.?[open].size() > 0}">진행 중</p>
+                                <a th:each="o : ${options}" th:if="${o.open()}" role="option"
+                                    th:href="@{/admin/responses(formId=${o.id()}, tab=${search.tab()})}"
+                                    th:classappend="${o.id() == overview.formId()} ? 'is-current'" href="#">
+                                    <span th:text="${o.title()}">폼 제목</span>
+                                    <span class="rate" th:text="${o.ratePercent()} + '%'">0%</span>
+                                </a>
+
+                                <div class="divider" th:if="${options.?[!open].size() > 0}"></div>
+                                <p class="group" th:if="${options.?[!open].size() > 0}">마감</p>
+                                <a th:each="o : ${options}" th:unless="${o.open()}" role="option"
+                                    th:href="@{/admin/responses(formId=${o.id()}, tab=${search.tab()})}"
+                                    th:classappend="${o.id() == overview.formId()} ? 'is-current'" href="#">
+                                    <span th:text="${o.title()}">폼 제목</span>
+                                    <span class="rate" th:text="${o.ratePercent()} + '%'">0%</span>
+                                </a>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <button class="btn-solid" type="button" id="downloadBtn">엑셀 다운로드</button>
+                </div>
+
+                <!-- 폼 정보 한 줄 -->
+                <p class="resp-info">
+                    <span th:text="${overview.endAt() != null}
+                        ? '마감 ' + ${#temporals.format(overview.endAt(), 'yyyy-MM-dd HH:mm')} : '상시 접수'">마감</span>
+                    <span class="dot" th:if="${overview.daysLeft() != null or overview.closed()}">·</span>
+                    <span class="day-badge" th:if="${overview.closed()}">마감</span>
+                    <span class="day-badge" th:if="${!overview.closed() and overview.daysLeft() != null}"
+                        th:classappend="${overview.daysLeft() <= 3} ? 'is-urgent'"
+                        th:text="'D-' + ${overview.daysLeft()}">D-5</span>
+                    <span class="dot">·</span>
+                    <span th:text="${overview.typeLabel() != null}
+                        ? '대상 ' + ${overview.typeLabel()} : '대상 전체'">대상 전체</span>
+                    <span class="dot" th:if="${!overview.departmentNames().isEmpty()}">·</span>
+                    <span class="dept-badge" th:each="d : ${overview.departmentNames()}"
+                        th:text="${d}">개발팀</span>
+                </p>
+
+                <!-- 요약 -->
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <p class="label">응답</p>
+                        <p class="value" th:text="${overview.answered()} + '명'">0명</p>
+                    </div>
+                    <div class="summary-card">
+                        <p class="label">미응답</p>
+                        <p class="value" th:text="${overview.pending()} + '명'">0명</p>
+                    </div>
+                    <div class="summary-card">
+                        <p class="label">응답률</p>
+                        <p class="value" th:text="${overview.ratePercent()} + '%'">0%</p>
+                    </div>
+                    <div class="summary-card">
+                        <p class="label">남은 기간</p>
+                        <p class="value" th:text="${overview.remainText()}">-</p>
+                    </div>
+                </div>
+
+                <!-- 탭 -->
+                <nav class="resp-tabs">
+                    <a th:href="@{/admin/responses(formId=${overview.formId()}, tab='list')}"
+                        th:classappend="${!search.statsTab()} ? 'is-active'" href="#">응답 목록</a>
+                    <a th:href="@{/admin/responses(formId=${overview.formId()}, tab='stats')}"
+                        th:classappend="${search.statsTab()} ? 'is-active'" href="#">통계</a>
+                </nav>
+
+                <!-- ── 응답 목록 탭 ── -->
+                <th:block th:unless="${search.statsTab()}">
+                    <form class="admin-toolbar" th:action="@{/admin/responses}" method="get">
+                        <input type="hidden" name="formId" th:value="${overview.formId()}">
+                        <div class="filters">
+                            <label class="field-search">
+                                <img th:src="@{/image/icon-search.svg}" src="/image/icon-search.svg" alt="">
+                                <input type="search" name="keyword" placeholder="직원명 검색"
+                                    th:value="${search.keyword()}">
+                            </label>
+                            <select class="field-select" name="departmentId" onchange="this.form.submit()">
+                                <option value="">전체 부서</option>
+                                <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"
+                                    th:selected="${search.departmentId() != null and search.departmentId() == d.id}">부서</option>
+                            </select>
+                        </div>
+
+                        <div class="segmented">
+                            <a th:each="s : ${ {'answered','pending','all'} }"
+                                th:href="@{/admin/responses(formId=${overview.formId()}, keyword=${search.keyword()},
+                                    departmentId=${search.departmentId()}, status=${s})}"
+                                th:classappend="${search.status() == s} ? 'is-active'"
+                                th:text="${s == 'answered'} ? '응답' : (${s == 'pending'} ? '미응답' : '전체')">전체</a>
+                        </div>
+                    </form>
+
+                    <p class="result-count" th:text="'검색 결과 ' + ${rows.totalElements} + '명'">검색 결과 0명</p>
+
+                    <div class="admin-table resp-table" th:if="${rows.totalElements > 0}">
+                        <div class="thead">
+                            <span class="col">이름</span>
+                            <span class="col">부서</span>
+                            <span class="col">구분</span>
+                            <span class="col">응답 시각</span>
+                            <span class="col-actions">관리</span>
+                        </div>
+                        <ul class="rows">
+                            <li class="row" th:each="r : ${rows.content}"
+                                th:classappend="${!r.answered()} ? 'is-pending'">
+                                <span class="col name" th:text="${r.name()}">홍길동</span>
+                                <span class="col">
+                                    <span class="dept-badge" th:if="${r.departmentName() != null}"
+                                        th:text="${r.departmentName()}">개발팀</span>
+                                    <span class="muted" th:if="${r.departmentName() == null}">미지정</span>
+                                </span>
+                                <span class="col muted" th:text="${r.typeLabel()}">직접직</span>
+                                <span class="col submitted">
+                                    <span class="muted" th:text="${r.answered()}
+                                        ? ${#temporals.format(r.submittedAt(), 'yyyy-MM-dd HH:mm')} : '-'">-</span>
+                                    <span class="edited-tag" th:if="${r.edited()}">수정</span>
+                                </span>
+                                <span class="col-actions">
+                                    <button class="icon-btn" type="button" th:if="${r.answered()}"
+                                        th:attr="data-detail=${r.empNo()}" aria-label="응답 보기">
+                                        <img th:src="@{/image/icon-eye.svg}" src="/image/icon-eye.svg" alt="">
+                                    </button>
+                                </span>
+                            </li>
+                        </ul>
+
+                        <nav class="pagination" th:if="${rows.totalPages > 1}">
+                            <a th:href="@{/admin/responses(formId=${overview.formId()}, keyword=${search.keyword()},
+                                departmentId=${search.departmentId()}, status=${search.status()},
+                                page=${rows.number - 1})}"
+                                th:classappend="${rows.first} ? 'is-disabled'" href="#">←</a>
+                            <th:block th:each="i : ${#numbers.sequence(0, rows.totalPages - 1)}">
+                                <a th:href="@{/admin/responses(formId=${overview.formId()}, keyword=${search.keyword()},
+                                    departmentId=${search.departmentId()}, status=${search.status()}, page=${i})}"
+                                    th:classappend="${i == rows.number} ? 'is-current'"
+                                    th:text="${i + 1}">1</a>
+                            </th:block>
+                            <a th:href="@{/admin/responses(formId=${overview.formId()}, keyword=${search.keyword()},
+                                departmentId=${search.departmentId()}, status=${search.status()},
+                                page=${rows.number + 1})}"
+                                th:classappend="${rows.last} ? 'is-disabled'" href="#">→</a>
+                        </nav>
+                    </div>
+
+                    <div class="admin-empty" th:if="${rows.totalElements == 0}">
+                        <img th:src="@{/image/robot-awkward.png}" src="/image/robot-awkward.png" alt="">
+                        <p th:text="${search.emptyMessage(overview.targetCount() > 0)}">아직 응답이 없습니다</p>
+                    </div>
+                </th:block>
+
+                <!-- ── 통계 탭 ── -->
+                <th:block th:if="${search.statsTab()}">
+                    <div class="admin-empty" th:if="${overview.answered() == 0}">
+                        <img th:src="@{/image/robot-awkward.png}" src="/image/robot-awkward.png" alt="">
+                        <p>아직 응답이 없습니다</p>
+                    </div>
+
+                    <div class="stats" th:if="${overview.answered() > 0}">
+                        <section class="stat-card" th:each="q : ${stats}">
+                            <div class="stat-head">
+                                <strong th:text="'Q' + ${q.number()} + '.'">Q1.</strong>
+                                <span class="q" th:text="${q.title()}">질문 제목</span>
+                                <span class="type" th:text="${q.typeLabel()}">단일선택</span>
+                            </div>
+
+                            <!-- 이미지 선택은 썸네일로 -->
+                            <div class="stat-images" th:if="${q.imageType()}">
+                                <div class="stat-image" th:each="b : ${q.bars()}">
+                                    <img th:src="${b.imagePath()}" th:alt="${b.label()}">
+                                    <span class="cap" th:text="${b.label()}">선택지</span>
+                                    <span class="num"
+                                        th:text="${b.count()} + '명 (' + ${b.percent()} + '%)'">0명 (0%)</span>
+                                </div>
+                            </div>
+
+                            <!-- 그 밖의 선택형은 막대로 -->
+                            <div class="stat-bars" th:if="${!q.textual() and !q.imageType()}">
+                                <div class="stat-bar" th:each="b : ${q.bars()}">
+                                    <span class="label" th:text="${b.label()}">선택지</span>
+                                    <span class="track">
+                                        <span class="fill" th:style="'width:' + ${b.percent()} + '%'"></span>
+                                    </span>
+                                    <span class="num"
+                                        th:text="${b.count()} + '명 (' + ${b.percent()} + '%)'">0명 (0%)</span>
+                                </div>
+                            </div>
+
+                            <!-- 자유 입력은 집계할 게 없다 -->
+                            <div class="stat-textual" th:if="${q.textual()}">
+                                <span>응답 목록에서 개별 확인</span>
+                                <a th:href="@{/admin/responses(formId=${overview.formId()}, tab='list',
+                                    status='answered')}" href="#">목록에서 보기</a>
+                            </div>
+                        </section>
+                    </div>
+                </th:block>
+            </th:block>
+        </main>
+    </div>
+
+    <!-- 개별 응답 -->
+    <dialog class="admin-modal detail" id="detailModal">
+        <div class="modal-head">
+            <h2>응답 상세</h2>
+            <button class="modal-close-x" type="button" data-close aria-label="닫기">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="detail-meta" id="detailMeta"></p>
+            <dl class="detail-list" id="detailList"></dl>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-ghost" type="button" data-close>닫기</button>
+        </div>
+    </dialog>
+
+    <dialog class="admin-modal download" id="downloadModal" th:if="${!noForms}">
+        <form id="downloadForm" th:action="@{/admin/responses/excel}" method="get">
+            <input type="hidden" name="formId" th:value="${overview.formId()}">
+            <input type="hidden" name="keyword" th:value="${search.keyword()}">
+            <input type="hidden" name="departmentId" th:value="${search.departmentId()}">
+
+            <div class="modal-head">
+                <h2>엑셀 다운로드</h2>
+                <button class="modal-close-x" type="button" data-close aria-label="닫기">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <p class="set-label">포함할 직원 정보</p>
+                <ul class="check-list">
+                    <li th:each="c : ${columns}">
+                        <label>
+                            <input type="checkbox" name="columns" th:value="${c.key()}"
+                                th:checked="${defaultColumns.contains(c)}">
+                            <span th:text="${c.header()}">사번</span>
+                        </label>
+                    </li>
+                </ul>
+
+                <div class="toggle-row">
+                    <span>미응답자 포함</span>
+                    <label class="switch">
+                        <input type="checkbox" name="includePending" value="true">
+                        <span class="track"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-foot">
+                <button class="btn-ghost" type="button" data-close>취소</button>
+                <button class="btn-solid" type="submit">다운로드</button>
+            </div>
+        </form>
+    </dialog>
+
+    <span id="respData" hidden th:if="${!noForms}"
+        th:attr="data-form-id=${overview.formId()}"></span>
+
+    <script th:src="@{/js/admin-responses.js}" src="/js/admin-responses.js"></script>
+</body>
+
+</html>

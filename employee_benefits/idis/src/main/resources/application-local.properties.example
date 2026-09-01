@@ -1,0 +1,12 @@
+# 로컬 개발용 설정 본보기.
+# 이 파일을 application-local.properties 로 복사하고 비밀번호만 자기 것으로 바꾼다.
+# (application-local.properties 는 .gitignore 에 있어 올라가지 않는다)
+
+spring.datasource.url=jdbc:mysql://localhost:3306/idis?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+spring.datasource.username=root
+spring.datasource.password=여기에_로컬_비밀번호
+
+# 로컬은 엔티티를 고치면 스키마가 따라오게 둔다. 운영은 validate 다.
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true

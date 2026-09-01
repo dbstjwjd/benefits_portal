@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<!--
+  Spring Boot 가 처리하는 모든 오류 화면.
+  status 값에 따라 문구만 바꾼다. (400 / 403 / 404 / 500 · 그 외는 500 문구)
+  FormController 에서 대상이 아닌 설문을 열면 403 으로 여기에 온다.
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:with="t=${status == 400 ? '잘못된 요청이에요' : (status == 403 ? '접근 제한 안내' : (status == 404 ? '페이지를 찾을 수 없음' : '일시적인 오류가 발생했어요'))}"
+        th:text="${t} + ' | IDIS'">오류 | IDIS</title>
+    <link rel="icon" type="image/png" sizes="32x32"
+        th:href="@{/image/favicon-32.png}" href="/image/favicon-32.png">
+    <link rel="icon" type="image/png"
+        th:href="@{/image/favicon.png}" href="/image/favicon.png">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css">
+</head>
+
+<body class="app" th:with="isAdmin=${path != null and #strings.startsWith(path, '/admin')}">
+    <div class="empty-state">
+        <img class="mascot" th:src="@{/image/robot-awkward.png}" src="/image/robot-awkward.png" alt="">
+        <div class="texts">
+            <h2 th:switch="${status}">
+                <th:block th:case="400">잘못된 요청이에요</th:block>
+                <th:block th:case="403"
+                    th:text="${isAdmin} ? '관리자만 볼 수 있어요' : '접근할 수 없는 설문이에요'">접근할 수 없는 설문이에요</th:block>
+                <th:block th:case="404">페이지를 찾을 수 없어요</th:block>
+                <th:block th:case="*">일시적인 오류가 발생했어요</th:block>
+            </h2>
+            <p th:switch="${status}">
+                <th:block th:case="400">요청 형식이 올바르지 않습니다</th:block>
+                <th:block th:case="403"
+                    th:text="${isAdmin} ? '관리자 권한이 있는 계정으로 로그인해 주세요' : '이 복리후생 설문의 대상이 아닙니다'">이 복리후생 설문의 대상이 아닙니다</th:block>
+                <th:block th:case="404">요청하신 페이지가 존재하지 않거나 삭제되었습니다</th:block>
+                <th:block th:case="*">잠시 후 다시 시도해 주세요</th:block>
+            </p>
+        </div>
+        <a class="btn-primary" th:href="@{/forms}" href="/forms">홈으로 가기</a>
+    </div>
+</body>
+
+</html>

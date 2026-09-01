@@ -1,105 +1,128 @@
 /* 로그인 화면 전용. theme.css 다음에 로드한다. */
 
-html,
-body {
-    height: 100%;
-}
-
-.login {
-    max-width: 430px;
-    min-height: 100dvh;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    background: #fff;
-}
-
-/* ── 상단 그래픽 (민트 패턴 + 로봇) ─────────────────────── */
-
-.hero {
+.login-shell {
     position: relative;
-    height: 220px;
-    background: url("/image/login-header-bg.png") center / cover no-repeat;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
 }
 
-.hero .robot {
+/*
+ * 도미는 카드 기준으로 붙인다.
+ * 안내 문구가 몇 줄이든(설정에서 바뀐다) 카드에 걸치는 정도가 늘 같아야
+ * 시안처럼 머리만 빼꼼 나오고 난간이 가려진다.
+ */
+#loginForm {
+    position: relative;
+}
+
+.domi-peek {
     position: absolute;
-    top: 40px;
-    right: 20px;
-    width: 180px;
-    height: 180px;
-    object-fit: contain;
+    right: 4px;
+    /* 카드 위쪽으로 나오되 35px 만큼 카드에 물린다 */
+    bottom: calc(100% - 35px);
+    width: 135px;
+    height: 140px;
+    object-fit: cover;
+    object-position: top;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
+
+.login-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 24px;
+    padding: 86px 24px 32px;
 }
 
 /* ── 브랜드 ────────────────────────────────────────────── */
 
-.content {
-    padding: 40px 24px 24px;
+.brand {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .brand .logo {
-    height: 29px;
-    width: auto;
-    display: block;
+    width: 80px;
+    height: 24px;
+    object-fit: contain;
 }
 
-.sub {
-    margin-top: 12px;
+.brand .title {
     font-size: 22px;
     font-weight: 700;
-    line-height: 1.3;
-    color: var(--title);
-}
-
-.notice {
-    margin-top: 6px;
-    font-size: 14px;
     line-height: 1.4;
-    color: var(--gray-1);
+    color: var(--text-strong);
 }
 
-/* ── 입력 ──────────────────────────────────────────────── */
-
-form {
-    margin-top: 32px;
+.brand .desc {
+    margin-top: 6px;
+    /* 설정에서 여러 줄로 넣은 안내 문구의 줄바꿈을 살린다 */
+    white-space: pre-line;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
 }
 
-.login .alert {
-    margin-bottom: 18px;
+/* ── 입력 카드 ─────────────────────────────────────────── */
+
+.login-card {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .02));
 }
 
 .field {
-    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-label {
-    display: block;
+.field label {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--text-heading);
+}
+
+.field label .req {
+    color: var(--required);
     font-size: 14px;
-    font-weight: 600;
-    color: var(--title);
-    margin-bottom: 8px;
 }
 
 .input-box {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 0 16px;
+    gap: 10px;
     height: var(--h-input);
-    border: 1px solid var(--line);
-    border-radius: var(--r-control);
-    background: #fff;
+    padding: 0 16px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     transition: border-color .15s;
 }
 
 .input-box:focus-within {
-    border-color: var(--main);
+    border-color: var(--brand);
 }
 
-.input-icon {
-    width: 18px;
-    height: 18px;
+.input-box .input-icon {
     flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
 }
 
 .input-box input {
@@ -107,10 +130,11 @@ label {
     min-width: 0;
     border: 0;
     padding: 0;
-    font-size: 15px;
-    font-family: inherit;
-    color: var(--ink);
     background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-strong);
 }
 
 .input-box input:focus {
@@ -118,7 +142,7 @@ label {
 }
 
 .input-box input::placeholder {
-    color: var(--gray-2);
+    color: var(--text-placeholder);
 }
 
 .field.err .input-box {
@@ -127,10 +151,9 @@ label {
 
 .msg {
     display: none;
-    margin-top: 8px;
     font-size: 12.5px;
-    color: var(--error);
     line-height: 1.4;
+    color: var(--error);
 }
 
 .field.err .msg {
@@ -139,50 +162,152 @@ label {
 
 /* ── 버튼 영역 ─────────────────────────────────────────── */
 
-.login-btn {
-    margin-top: 12px;
+/* PIN 화면. 로그인 카드가 없어 필드 사이 간격만 따로 준다 */
+.pin-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .divider {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 16px 0;
 }
 
 .divider .line {
     flex: 1;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--border);
 }
 
 .divider .or {
     font-size: 13px;
     font-weight: 500;
-    color: var(--gray-2);
+    line-height: 1.4;
+    color: var(--text-placeholder);
 }
 
-.btn-icon {
-    width: 16px;
-    height: 16px;
+/* ── 사이트 이용 문의 모달 ─────────────────────────────── */
+
+dialog.contact {
+    width: min(360px, calc(100vw - 40px));
+    padding: 24px 20px 20px;
+    text-align: left;
 }
 
-/* ── 데스크탑 ──────────────────────────────────────────── */
+dialog.contact h2 {
+    text-align: center;
+}
 
-@media (min-width: 600px) {
-    body {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 16px;
+.contact-intro {
+    margin-top: 10px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 0;
+    list-style: none;
+}
+
+.contact-card {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-soft);
+}
+
+.contact-card .who {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.contact-card .name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-heading);
+}
+
+.contact-card .role {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+}
+
+.contact-card .detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 10px 0 0;
+}
+
+.contact-card .detail > div {
+    display: flex;
+    gap: 8px;
+    font-size: 13.5px;
+    line-height: 1.5;
+}
+
+.contact-card .detail dt {
+    flex: 0 0 32px;
+    color: var(--text-placeholder);
+}
+
+.contact-card .detail dd {
+    margin: 0;
+    color: var(--text-strong);
+}
+
+.contact-footnote {
+    margin-top: 14px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-placeholder);
+    text-align: center;
+}
+
+/* ── 데스크탑: 시안 PC 로그인 ──────────────────────────── */
+
+@media (min-width: 768px) {
+    .login-content {
+        /* 좌우 24px + body.app 의 23px = 시안의 카드 안쪽 47px */
+        padding: 50px 24px 50px;
+        gap: 28px;
     }
 
-    .login {
-        width: var(--shell);
-        max-width: 100%;
-        min-height: auto;
-        margin: 0;
-        border-radius: var(--r-shell);
-        box-shadow: 0 6px 24px rgba(17, 24, 32, .08);
-        overflow: hidden;
+    /* 시안은 입력과 버튼 사이가 모바일보다 조금 넉넉하다 */
+    .actions {
+        gap: 20px;
+    }
+
+    /* PC 시안은 입력이 카드 안에 또 박스로 들어가지 않는다 */
+    .login-card {
+        padding: 0;
+        background: none;
+        border: 0;
+        filter: none;
+    }
+
+    /*
+     * 데스크탑은 덮어 줄 입력 카드가 없으므로 이미지 자체를 난간 위에서 자른다.
+     * 원본 280px 중 난간이 211px 부터라 135px 폭 기준 약 100px 이 머리·어깨다.
+     */
+    .domi-peek {
+        /* 시안은 카드 오른쪽에서 105px 안쪽에 둔다 (form 기준으로 환산) */
+        right: 30px;
+        height: 100px;
+        bottom: calc(100% - 22px);
     }
 }

@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>신청 내역 | IDIS</title>
+    <title>신청내역 | IDIS</title>
+    <link rel="icon" type="image/png" sizes="32x32"
+        th:href="@{/image/favicon-32.png}" href="/image/favicon-32.png">
+    <link rel="icon" type="image/png"
+        th:href="@{/image/favicon.png}" href="/image/favicon.png">
     <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
     <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css">
@@ -12,43 +16,64 @@
 </head>
 
 <body class="app">
-    <div class="head">
-        <header class="top">
-            <a class="back" th:href="@{/forms}" href="/forms">← 목록</a>
-            <form th:action="@{/logout}" action="/logout" method="post">
-                <button class="logout-btn" type="submit">로그아웃</button>
-            </form>
-        </header>
-        <div class="head-title">
-            <p class="greeting">
-                <strong th:text="${loginUser.name}">홍길동</strong>님, 안녕하세요
-            </p>
-            <h1 class="title">신청 내역</h1>
-        </div>
+    <header class="app-header">
+        <h1>신청내역</h1>
+        <a class="home-link" th:href="@{/forms}" href="/forms" aria-label="홈">
+            <img th:src="@{/image/icon-home.svg}" src="/image/icon-home.svg" alt="">
+        </a>
+    </header>
+
+    <div class="chips" th:if="${!responses.isEmpty()}">
+        <button class="chip is-active" type="button" data-filter="all">전체</button>
+        <button class="chip" type="button" data-filter="open">진행중</button>
+        <button class="chip" type="button" data-filter="closed">완료</button>
     </div>
 
-    <main class="page">
-        <ul class="cards" th:if="${!responses.isEmpty()}">
-            <li class="card" th:each="response : ${responses}">
-                <a class="card-link" th:href="@{/forms/{id}(id=${response.formId})}" href="#">
-                    <span class="badge" th:classappend="${response.formOpen} ? 'done' : 'closed'"
-                        th:text="${response.formOpen} ? '진행중' : '마감'">진행중</span>
-                    <h2 class="card-title" th:text="${response.formTitle}">2026년 추석 선물 신청</h2>
-                    <p class="card-period">
-                        <span th:text="${#temporals.format(response.submittedAt, 'yyyy.MM.dd')} + ' 신청'">신청일</span>
-                        <span th:if="${response.edited}"> · 수정됨</span>
-                    </p>
-                </a>
-            </li>
-        </ul>
+    <ul class="history-list" th:if="${!responses.isEmpty()}" id="historyList">
+        <li th:each="response : ${responses}"
+            th:attr="data-state=${response.formOpen} ? 'open' : 'closed'">
+            <a class="history-card" th:href="@{/forms/{id}(id=${response.formId})}" href="#">
+                <span class="row">
+                    <span class="name" th:text="${response.formTitle}">2026 하반기 복리후생 신청</span>
+                    <span class="badge" th:classappend="${response.formOpen} ? 'is-open' : 'is-closed'"
+                        th:text="${response.formOpen} ? '제출완료' : '완료'">제출완료</span>
+                </span>
+                <span class="rule"></span>
+                <span class="row">
+                    <span class="summary" th:text="'신청 항목: ' + ${response.summary}">신청 항목: 한우 세트</span>
+                    <span class="date"
+                        th:text="${#temporals.format(response.submittedAt, 'yyyy.MM.dd')}">2026.08.20</span>
+                </span>
+            </a>
+        </li>
+    </ul>
 
-        <div class="empty" th:if="${responses.isEmpty()}">
-            <div class="char-wrap">
-                <img class="char" th:src="@{/image/robot.png}" src="/image/robot.png" alt="">
-            </div>
-            <p>아직 신청한 복리후생이 없습니다</p>
+    <div class="empty-state" th:if="${responses.isEmpty()}">
+        <img class="mascot" th:src="@{/image/robot-empty.png}" src="/image/robot-empty.png" alt="">
+        <div class="texts">
+            <h2>아직 신청한 내역이 없어요</h2>
+            <p>새로운 설문에 참여하고 복리후생을 신청해보세요</p>
         </div>
-    </main>
+        <a class="btn-primary" th:href="@{/forms}" href="/forms">신청하러 가기</a>
+    </div>
+
+    <div th:if="${!responses.isEmpty()}" style="flex: 1;"></div>
+
+    <script>
+        const chips = document.querySelectorAll(".chip");
+        const items = document.querySelectorAll("#historyList > li");
+
+        chips.forEach((chip) => {
+            chip.addEventListener("click", () => {
+                chips.forEach((c) => c.classList.toggle("is-active", c === chip));
+                const filter = chip.dataset.filter;
+                items.forEach((item) => {
+                    const show = filter === "all" || item.dataset.state === filter;
+                    item.style.display = show ? "" : "none";
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

@@ -57,11 +57,9 @@ public class Question extends BaseEntity {
         choice.assignQuestion(this);
     }
 
-    public void update(QuestionType type, String title, boolean required, int sortOrder, String config) {
-        this.type = type;
-        this.title = title;
-        this.required = required;
-        this.sortOrder = sortOrder;
-        this.config = config;
+    /** 화면과 검증이 같이 쓰는 타입별 부가 설정. 값이 없거나 깨졌으면 빈 설정이다. */
+    public QuestionConfig configOrEmpty() {
+        return QuestionConfig.parse(config);
     }
+
 }

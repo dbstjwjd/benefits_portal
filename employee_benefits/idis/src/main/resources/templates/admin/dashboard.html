@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{admin/layout :: head('대시보드')}"></head>
+
+<body class="admin">
+    <div th:replace="~{admin/layout :: tooNarrow}"></div>
+
+    <div class="admin-shell">
+        <aside th:replace="~{admin/layout :: side('dashboard', ${admin})}"></aside>
+
+        <main class="admin-main">
+            <div class="admin-head">
+                <h1>대시보드</h1>
+                <p class="today"
+                    th:text="${#temporals.format(view.today(), 'yyyy년 M월 d일')}">2026년 8월 26일</p>
+            </div>
+
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <p class="label">진행 중인 폼</p>
+                    <p class="value" th:text="${view.openFormCount()} + '개'">0개</p>
+                </div>
+                <div class="summary-card">
+                    <p class="label">마감 임박</p>
+                    <p class="value" th:text="${view.dueSoonCount()} + '개'">0개</p>
+                </div>
+                <div class="summary-card">
+                    <p class="label">오늘 응답</p>
+                    <p class="value" th:text="${view.todayResponseCount()} + '건'">0건</p>
+                </div>
+                <div class="summary-card">
+                    <p class="label">재직 인원</p>
+                    <p class="value" th:text="${view.activeCount()} + '명'">0명</p>
+                </div>
+            </div>
+
+            <div class="dash-grid">
+                <div class="dash-col">
+                    <!-- 진행 중인 폼 -->
+                    <section class="dash-card">
+                        <div class="dash-head">
+                            <h2>진행 중인 폼</h2>
+                            <a th:href="@{/admin/forms}" href="/admin/forms">전체 보기</a>
+                        </div>
+
+                        <p class="dash-empty" th:if="${view.openForms().isEmpty()}">진행 중인 폼이 없습니다</p>
+
+                        <ul class="dash-forms" th:unless="${view.openForms().isEmpty()}">
+                            <li th:each="f : ${view.openForms()}">
+                                <a th:href="@{/admin/responses(formId=${f.id()})}" href="#">
+                                    <span class="title" th:text="${f.title()}">추석 선물 신청</span>
+                                    <span class="day-badge" th:if="${f.dayBadge() != null}"
+                                        th:classappend="${f.urgent()} ? 'is-urgent'"
+                                        th:text="${f.dayBadge()}">D-5</span>
+                                    <span class="track">
+                                        <span class="fill" th:style="'width:' + ${f.ratePercent()} + '%'"></span>
+                                    </span>
+                                    <span class="num"
+                                        th:text="${f.responseCount()} + ' / ' + ${f.targetCount()}
+                                            + ' (' + ${f.ratePercent()} + '%)'">0 / 0 (0%)</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <!-- 부서별 응답률 -->
+                    <section class="dash-card" th:unless="${view.departmentRates().isEmpty()}">
+                        <div class="dash-head">
+                            <h2>부서별 응답률</h2>
+                        </div>
+                        <ul class="dash-depts">
+                            <li th:each="d : ${view.departmentRates()}">
+                                <span class="dept-badge" th:text="${d.departmentName()}">개발팀</span>
+                                <span class="track">
+                                    <span class="fill" th:style="'width:' + ${d.percent()} + '%'"></span>
+                                </span>
+                                <span class="num"
+                                    th:text="${d.answered()} + '명 (' + ${d.percent()} + '%)'">0명 (0%)</span>
+                            </li>
+                        </ul>
+                    </section>
+                </div>
+
+                <div class="dash-col">
+                    <!-- 최근 응답 -->
+                    <section class="dash-card">
+                        <div class="dash-head">
+                            <h2>최근 응답</h2>
+                        </div>
+
+                        <p class="dash-empty" th:if="${view.recentResponses().isEmpty()}">아직 응답이 없습니다</p>
+
+                        <ul class="dash-recent" th:unless="${view.recentResponses().isEmpty()}">
+                            <li th:each="r : ${view.recentResponses()}">
+                                <span class="who">
+                                    <span class="name" th:text="${r.name()}">홍길동</span>
+                                    <span class="form" th:text="${r.formTitle()}">추석 선물 신청</span>
+                                </span>
+                                <span class="at"
+                                    th:text="${#temporals.format(r.at(), 'HH:mm')}">14:23</span>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <!-- 이번 달 입사자: 없으면 카드째 숨긴다 -->
+                    <section class="dash-card" th:unless="${view.newcomers().isEmpty()}">
+                        <div class="dash-head">
+                            <h2>이번 달 입사자</h2>
+                        </div>
+                        <ul class="dash-newcomers">
+                            <li th:each="n : ${view.newcomers()}">
+                                <span class="name" th:text="${n.name()}">이수진</span>
+                                <span class="dept-badge" th:if="${n.departmentName() != null}"
+                                    th:text="${n.departmentName()}">마케팅팀</span>
+                                <span class="at"
+                                    th:text="${#temporals.format(n.hireDate(), 'yyyy-MM-dd')}">2026-08-18</span>
+                            </li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

@@ -5,111 +5,212 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${form.title} + ' | IDIS'">복리후생 신청 | IDIS</title>
+    <link rel="icon" type="image/png" sizes="32x32"
+        th:href="@{/image/favicon-32.png}" href="/image/favicon-32.png">
+    <link rel="icon" type="image/png"
+        th:href="@{/image/favicon.png}" href="/image/favicon.png">
     <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
     <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css">
     <link rel="stylesheet" th:href="@{/css/forms.css}" href="/css/forms.css">
 </head>
 
-<body class="app">
-    <div class="head">
-        <header class="top">
-            <a class="back" th:href="@{/forms}" href="/forms">← 목록</a>
-            <form th:action="@{/logout}" action="/logout" method="post">
-                <button class="logout-btn" type="submit">로그아웃</button>
-            </form>
-        </header>
-        <div class="head-title">
-            <h1 class="title" th:text="${form.title}">2026년 추석 선물 신청</h1>
-            <p class="form-desc" th:if="${form.description}" th:text="${form.description}">설명</p>
-            <p class="card-period" th:if="${form.endAt != null}"
-                th:text="'~ ' + ${#temporals.format(form.endAt, 'yyyy.MM.dd')} + ' 마감'">~ 마감</p>
-        </div>
+<body class="app survey">
+    <header class="app-header">
+        <a class="back" th:href="${preview} ? @{/admin/forms/{id}/edit(id=${form.id})} : @{/forms}"
+            href="/forms" aria-label="뒤로">
+            <img th:src="@{/image/icon-arrow-left.svg}" src="/image/icon-arrow-left.svg" alt="">
+        </a>
+        <h1 th:text="${form.title}">2026 하반기 복리후생 신청</h1>
+        <a class="home-link" th:unless="${preview}" th:href="@{/forms}" href="/forms" aria-label="홈">
+            <img th:src="@{/image/icon-home.svg}" src="/image/icon-home.svg" alt="">
+        </a>
+    </header>
+
+    <div class="edit-banner" th:if="${submitted and !readOnly}">
+        <img th:src="@{/image/icon-alert-triangle.svg}" src="/image/icon-alert-triangle.svg" alt="">
+        <span>기존 답변을 수정 중입니다</span>
     </div>
 
-    <main class="page">
+    <form class="form-content" id="surveyForm" th:action="@{/forms/{id}(id=${form.id})}" method="post">
+        <p class="form-desc" th:if="${form.description}" th:text="${form.description}">
+            항목을 선택하고 수령 정보를 입력해주세요
+        </p>
+
         <p class="alert" th:if="${submitError}" th:text="${submitError}"></p>
-        <p class="info readonly" th:if="${readOnly and submitError == null}">
+        <p class="info readonly" th:if="${preview}">
+            미리보기입니다. 응답자에게 보이는 화면과 같습니다.
+        </p>
+        <p class="info readonly" th:if="${readOnly and submitError == null and !preview}">
             마감되어 더 이상 수정할 수 없습니다. 제출하신 내용입니다.
         </p>
-        <p class="info" th:if="${!readOnly and submitted and submitError == null}">
-            이미 신청하셨습니다. 마감 전까지 내용을 수정할 수 있습니다.
-        </p>
+        <th:block th:each="question : ${form.questions}" th:with="key='q' + ${question.id}">
 
-        <form th:action="@{/forms/{id}(id=${form.id})}" method="post">
-            <div class="question" th:each="question : ${form.questions}"
-                th:with="key='q' + ${question.id}" th:switch="${question.type.name()}">
+            <div class="question">
+                <p class="q-title">
+                    <span th:text="${question.title}">질문</span>
+                    <span class="req" th:if="${question.required}">*</span>
+                </p>
 
-                <h2 class="section" th:case="'SECTION'" th:text="${question.title}">구분</h2>
+                <p class="q-limit" th:if="${question.configOrEmpty().maxSelect() != null}"
+                    th:text="'최대 ' + ${question.configOrEmpty().maxSelect()} + '개까지 선택할 수 있어요'">
+                    최대 2개까지 선택할 수 있어요
+                </p>
 
-                <th:block th:case="*">
-                    <label class="q-title" th:for="${key}">
-                        <span th:text="${question.title}">질문</span>
-                        <span class="req" th:if="${question.required}">*</span>
-                    </label>
+                <div th:switch="${question.type.name()}">
 
-                    <div th:switch="${question.type.name()}">
-                        <input th:case="'SHORT_TEXT'" type="text" th:id="${key}" th:name="${key}"
-                            th:value="${values.get(key)}" th:required="${question.required}"
-                            th:disabled="${readOnly}">
-
-                        <textarea th:case="'LONG_TEXT'" rows="4" th:id="${key}" th:name="${key}"
-                            th:text="${values.get(key)}" th:required="${question.required}"
-                            th:disabled="${readOnly}"></textarea>
-
-                        <input th:case="'NUMBER'" type="number" th:id="${key}" th:name="${key}"
-                            th:value="${values.get(key)}" th:required="${question.required}"
-                            th:disabled="${readOnly}">
-
-                        <input th:case="'DATE'" type="date" th:id="${key}" th:name="${key}"
-                            th:value="${values.get(key)}" th:required="${question.required}"
-                            th:disabled="${readOnly}">
-
-                        <div th:case="'SINGLE_CHOICE'" class="choices">
-                            <label class="choice" th:each="choice : ${question.choices}">
-                                <input type="radio" th:name="${key}" th:value="${choice.id}"
-                                    th:checked="${values.get(key) == #strings.toString(choice.id)}"
-                                    th:required="${question.required}" th:disabled="${readOnly}">
-                                <span th:text="${choice.content}">선택지</span>
-                            </label>
-                        </div>
-
-                        <select th:case="'DROPDOWN'" th:id="${key}" th:name="${key}"
-                            th:required="${question.required}" th:disabled="${readOnly}">
-                            <option value="">선택하세요</option>
-                            <option th:each="choice : ${question.choices}" th:value="${choice.id}"
-                                th:text="${choice.content}"
-                                th:selected="${values.get(key) == #strings.toString(choice.id)}">선택지</option>
-                        </select>
-
-                        <div th:case="'ADDRESS'" class="address">
-                            <div class="zip-row">
-                                <input type="text" th:id="${key} + '_zipcode'" th:name="${key} + '_zipcode'"
-                                    th:value="${values.get(key + '_zipcode')}" placeholder="우편번호" readonly
-                                    th:required="${question.required}">
-                                <button type="button" class="zip-btn" th:if="${!readOnly}" th:attr="data-postcode=${key}">우편번호 검색</button>
-                            </div>
-                            <input type="text" th:id="${key} + '_address'" th:name="${key} + '_address'"
-                                th:value="${values.get(key + '_address')}" placeholder="주소" readonly
-                                th:required="${question.required}">
-                            <input type="text" th:id="${key} + '_detail'" th:name="${key} + '_detail'"
-                                th:value="${values.get(key + '_detail')}" placeholder="상세주소 (동/호수 등)"
-                                th:disabled="${readOnly}">
-                        </div>
-
-                        <p class="unsupported" th:case="*"
-                            th:text="'아직 지원하지 않는 질문 유형입니다 (' + ${question.type} + ')'">미지원</p>
+                    <div th:case="'SINGLE_CHOICE'" class="options">
+                        <label class="option" th:each="choice : ${question.choices}">
+                            <input type="radio" th:name="${key}" th:value="${choice.id}"
+                                th:checked="${values.get(key) == #strings.toString(choice.id)}"
+                                th:required="${question.required}" th:disabled="${readOnly}">
+                            <span th:text="${choice.content}">선택지</span>
+                        </label>
                     </div>
-                </th:block>
-            </div>
 
-            <button class="submit-btn" type="submit" th:if="${!readOnly}"
-                th:text="${submitted} ? '수정하기' : '신청하기'">신청하기</button>
-        </form>
-    </main>
+                    <div th:case="'MULTI_CHOICE'" class="options"
+                        th:attr="data-max-select=${question.configOrEmpty().maxSelect()}">
+                        <label class="option" th:each="choice : ${question.choices}">
+                            <input type="checkbox" th:name="${key}" th:value="${choice.id}"
+                                th:checked="${#strings.contains(values.get(key) ?: '', ',' + choice.id + ',')}"
+                                th:disabled="${readOnly}">
+                            <span th:text="${choice.content}">선택지</span>
+                        </label>
+                    </div>
+
+                    <div th:case="'IMAGE_CHOICE'" class="image-options"
+                        th:with="multi=${question.configOrEmpty().multiSelectImage()}">
+                        <label class="image-option" th:each="choice : ${question.choices}">
+                            <input th:type="${multi} ? 'checkbox' : 'radio'"
+                                th:name="${key}" th:value="${choice.id}"
+                                th:checked="${multi}
+                                    ? ${#strings.contains(values.get(key) ?: '', ',' + choice.id + ',')}
+                                    : ${values.get(key) == #strings.toString(choice.id)}"
+                                th:required="${question.required and !multi}" th:disabled="${readOnly}">
+                            <img th:src="${choice.imagePath}" th:alt="${choice.content}"
+                                th:if="${choice.imagePath}">
+                            <span th:text="${choice.content}">선택지</span>
+                        </label>
+                    </div>
+
+                    <input th:case="'SHORT_TEXT'" type="text" th:id="${key}" th:name="${key}"
+                        th:value="${values.get(key)}" th:required="${question.required}"
+                        th:disabled="${readOnly}">
+
+                    <input th:case="'PHONE'" type="tel" inputmode="numeric" maxlength="13"
+                        data-phone th:id="${key}" th:name="${key}"
+                        placeholder="010-0000-0000"
+                        th:value="${values.get(key)}" th:required="${question.required}"
+                        th:disabled="${readOnly}">
+
+                    <textarea th:case="'LONG_TEXT'" rows="4" th:id="${key}" th:name="${key}"
+                        th:text="${values.get(key)}" th:required="${question.required}"
+                        th:disabled="${readOnly}"></textarea>
+
+                    <input th:case="'DATE'" type="date" th:id="${key}" th:name="${key}"
+                        th:value="${values.get(key)}" th:required="${question.required}"
+                        th:min="${question.configOrEmpty().minDate()}"
+                        th:max="${question.configOrEmpty().maxDate()}"
+                        th:disabled="${readOnly}">
+
+                    <div th:case="'ADDRESS'" class="address">
+                        <div class="zip-row">
+                            <input type="text" th:id="${key} + '_zipcode'" th:name="${key} + '_zipcode'"
+                                th:value="${values.get(key + '_zipcode')}" placeholder="우편번호" readonly
+                                th:required="${question.required}">
+                            <button type="button" class="zip-btn" th:if="${!readOnly}"
+                                th:attr="data-postcode=${key}">우편번호 검색</button>
+                        </div>
+                        <input type="text" th:id="${key} + '_address'" th:name="${key} + '_address'"
+                            th:value="${values.get(key + '_address')}" placeholder="주소" readonly
+                            th:required="${question.required}">
+                        <input type="text" th:id="${key} + '_detail'" th:name="${key} + '_detail'"
+                            th:value="${values.get(key + '_detail')}" placeholder="상세주소 (동/호수 등)"
+                            th:disabled="${readOnly}">
+                    </div>
+
+                    <p class="unsupported" th:case="*"
+                        th:text="'아직 지원하지 않는 질문 유형입니다 (' + ${question.type} + ')'">미지원</p>
+                </div>
+            </div>
+        </th:block>
+
+        <div class="submit-wrap" th:if="${!readOnly}">
+            <a class="btn-outline" th:if="${submitted}" th:href="@{/responses}" href="/responses">이전으로</a>
+            <button class="btn-primary" type="submit"
+                th:text="${submitted} ? '수정하기' : '제출하기'">제출하기</button>
+        </div>
+    </form>
+
+    <dialog class="confirm" id="confirmModal">
+        <h2 th:text="${submitted} ? '수정하시겠어요?' : '제출하시겠어요?'">제출하시겠어요?</h2>
+        <p>
+            제출 후에는 수정이 어려울 수 있습니다.<br>
+            신청한 내용을 다시 한 번 확인해 주세요.
+        </p>
+        <div class="modal-actions">
+            <button class="btn-cancel" type="button" id="confirmCancel">취소</button>
+            <button class="btn-primary" type="button" id="confirmOk"
+                th:text="${submitted} ? '수정하기' : '제출하기'">제출하기</button>
+        </div>
+    </dialog>
 
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script>
+        // 전화번호는 로그인 화면과 같은 방식으로 입력하면서 하이픈을 붙인다
+        document.querySelectorAll("[data-phone]").forEach((input) => {
+            input.addEventListener("input", () => {
+                const digits = input.value.replace(/\D/g, "").slice(0, 11);
+                let formatted = digits;
+                if (digits.length > 7) {
+                    formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+                } else if (digits.length > 3) {
+                    formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+                }
+                input.value = formatted;
+            });
+        });
+
+        // 최대 선택 수가 있으면 그 수를 넘긴 순간 남은 항목을 잠근다
+        document.querySelectorAll("[data-max-select]").forEach((group) => {
+            const max = Number(group.dataset.maxSelect);
+            if (!max) return;
+            const boxes = Array.from(group.querySelectorAll("input[type=checkbox]"));
+            // 읽기 전용 화면은 이미 전부 잠겨 있으니 건드리지 않는다
+            if (boxes.some((box) => box.disabled)) return;
+            const sync = () => {
+                const picked = boxes.filter((box) => box.checked).length;
+                boxes.forEach((box) => { box.disabled = !box.checked && picked >= max; });
+            };
+            boxes.forEach((box) => box.addEventListener("change", sync));
+            sync();
+        });
+
+        // 필수값 검사를 통과한 뒤에만 확인 모달을 띄우고, 확인 시 실제로 제출한다.
+        const surveyForm = document.getElementById("surveyForm");
+        const confirmModal = document.getElementById("confirmModal");
+
+        if (surveyForm && confirmModal) {
+            let confirmed = false;
+
+            surveyForm.addEventListener("submit", (e) => {
+                if (confirmed) return;
+                e.preventDefault();
+                if (!surveyForm.reportValidity()) return;
+                confirmModal.showModal();
+            });
+
+            document.getElementById("confirmCancel").addEventListener("click", () => confirmModal.close());
+            document.getElementById("confirmOk").addEventListener("click", () => {
+                confirmed = true;
+                confirmModal.close();
+                surveyForm.submit();
+            });
+            confirmModal.addEventListener("click", (e) => {
+                if (e.target === confirmModal) confirmModal.close();
+            });
+        }
+
         document.querySelectorAll("[data-postcode]").forEach((button) => {
             button.addEventListener("click", () => {
                 const key = button.dataset.postcode;

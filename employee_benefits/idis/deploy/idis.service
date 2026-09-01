@@ -1,0 +1,54 @@
+# /etc/systemd/system/idis.service
+#
+# 설치:
+#   sudo cp deploy/idis.service /etc/systemd/system/
+#   sudo nano /etc/systemd/system/idis.service   # 비밀번호를 실제 값으로
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now idis
+#
+# 비밀번호가 이 파일에 들어가므로 소유자만 읽게 둔다:
+#   sudo chmod 600 /etc/systemd/system/idis.service
+
+[Unit]
+Description=IDIS 직원 복리후생 시스템
+# DB 가 아직 안 떠 있으면 validate 에서 실패하므로 mysql 뒤에 띄운다
+After=network-online.target mysql.service
+Wants=network-online.target
+Requires=mysql.service
+# 5분 안에 5번 넘게 죽으면 멈추고 사람을 부른다 ([Service] 가 아니라 [Unit] 지시자다)
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+[Service]
+Type=simple
+User=idis
+Group=idis
+WorkingDirectory=/opt/idis
+
+Environment="SPRING_PROFILES_ACTIVE=prod"
+Environment="DB_URL=jdbc:mysql://localhost:3306/idis?serverTimezone=Asia/Seoul&characterEncoding=UTF-8"
+Environment="DB_USERNAME=idis"
+Environment="DB_PASSWORD=여기에_DB_비밀번호"
+Environment="UPLOAD_DIR=/opt/idis/uploads"
+Environment="LOG_DIR=/var/log/idis"
+
+# 2GB 플랜에서 MySQL 과 같이 도니 힙을 넉넉히 잡지 않는다
+Environment="JAVA_OPTS=-Xms256m -Xmx768m -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul"
+ExecStart=/usr/bin/java $JAVA_OPTS -jar /opt/idis/idis.jar
+
+# 죽으면 10초 뒤 다시 띄운다 (연속 실패 상한은 [Unit] 의 StartLimit*)
+Restart=on-failure
+RestartSec=10
+
+SuccessExitStatus=143
+TimeoutStopSec=30
+
+# 쓰기가 필요한 곳만 열어 둔다
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/idis/uploads /var/log/idis
+
+[Install]
+WantedBy=multi-user.target

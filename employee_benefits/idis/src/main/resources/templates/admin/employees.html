@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{admin/layout :: head('직원 관리')}"></head>
+
+<body class="admin">
+    <div th:replace="~{admin/layout :: tooNarrow}"></div>
+
+    <div class="admin-shell">
+        <aside th:replace="~{admin/layout :: side('employees', ${admin})}"></aside>
+
+        <main class="admin-main">
+            <div class="admin-head">
+                <h1>직원 관리</h1>
+                <div class="actions">
+                    <button class="btn-line" type="button" id="excelUploadBtn">엑셀 업로드</button>
+                    <a class="btn-line" th:href="@{/admin/employees/excel(name=${search.name},
+                        departmentId=${search.departmentId}, type=${search.type}, status=${search.status})}"
+                        href="#">엑셀 다운로드</a>
+                    <button class="btn-solid" type="button" id="addEmployeeBtn">+ 직원 추가</button>
+                </div>
+            </div>
+
+            <p class="toast ok" th:if="${toast}" th:text="${toast}"></p>
+            <p class="toast err" th:if="${error}" th:text="${error}"></p>
+
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <p class="label">재직 인원</p>
+                    <p class="value" th:text="${summary.activeCount()} + '명'">0명</p>
+                </div>
+                <div class="summary-card">
+                    <p class="label">부서</p>
+                    <p class="value" th:text="${summary.departmentCount()} + '개'">0개</p>
+                </div>
+                <div class="summary-card">
+                    <p class="label">이번 달 입사</p>
+                    <p class="value" th:text="${summary.hiredThisMonth()} + '명'">0명</p>
+                </div>
+                <div class="summary-card">
+                    <p class="label">이번 달 퇴사</p>
+                    <p class="value" th:text="${summary.resignedThisMonth()} + '명'">0명</p>
+                </div>
+            </div>
+
+            <form class="admin-toolbar" th:action="@{/admin/employees}" method="get">
+                <div class="filters">
+                    <label class="field-search">
+                        <img th:src="@{/image/icon-search.svg}" src="/image/icon-search.svg" alt="">
+                        <input type="search" name="name" placeholder="직원명 검색"
+                            th:value="${search.name}">
+                    </label>
+
+                    <select class="field-select" name="departmentId" onchange="this.form.submit()">
+                        <option value="">전체 부서</option>
+                        <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"
+                            th:selected="${search.departmentId != null and search.departmentId == d.id}">부서</option>
+                    </select>
+
+                    <select class="field-select" name="type" onchange="this.form.submit()">
+                        <option value="">전체 구분</option>
+                        <option th:each="t : ${types}" th:value="${t}"
+                            th:text="${t.name() == 'DIRECT'} ? '직접직' : '간접직'"
+                            th:selected="${search.type != null and search.type == t}">구분</option>
+                    </select>
+                </div>
+
+                <!-- 상태는 링크로 이동해 현재 검색어·필터를 유지한다 -->
+                <div class="segmented">
+                    <a th:each="s : ${ {'active','resigned','all'} }"
+                        th:href="@{/admin/employees(name=${search.name}, departmentId=${search.departmentId},
+                            type=${search.type}, status=${s})}"
+                        th:classappend="${search.status == s} ? 'is-active'"
+                        th:text="${s == 'active'} ? '재직' : (${s == 'resigned'} ? '퇴사' : '전체')">재직</a>
+                </div>
+            </form>
+
+            <p class="result-count" th:text="'검색 결과 ' + ${employees.totalElements} + '명'">검색 결과 0명</p>
+
+            <!-- 목록 -->
+            <div class="admin-table" th:if="${employees.totalElements > 0}">
+                <div class="thead">
+                    <!--
+                        정렬 가능한 칸만 링크로 만든다. 누를 때마다 오름차순 → 내림차순 → 해제로 돌고,
+                        검색·필터·상태는 그대로 들고 다닌다. 페이지는 0 으로 되돌린다.
+                    -->
+                    <span class="col" th:each="c : ${columns}">
+                        <!-- key 가 빈 칸은 정렬 대상이 아니라 글자만 그린다 -->
+                        <span th:if="${c.key == ''}" th:text="${c.value}">전화번호</span>
+                        <a th:unless="${c.key == ''}" class="sort-link"
+                            th:href="@{/admin/employees(name=${search.name}, departmentId=${search.departmentId},
+                                type=${search.type}, status=${search.status},
+                                sort=${search.nextSort(c.key)}, dir=${search.nextDir(c.key)})}"
+                            th:classappend="${search.dirOf(c.key) != null} ? 'is-sorted'" href="#">
+                            <span th:text="${c.value}">이름</span>
+                            <span class="sort-arrow" th:if="${search.dirOf(c.key) != null}"
+                                th:text="${search.dirOf(c.key) == 'asc'} ? '▲' : '▼'">▲</span>
+                        </a>
+                    </span>
+                    <span class="col-actions">관리</span>
+                </div>
+                <ul class="rows">
+                    <li class="row" th:each="e : ${employees.content}"
+                        th:classappend="(${!e.active} ? 'is-resigned ' : '')
+                                      + (${e.role.name() == 'ADMIN'} ? 'is-admin' : '')"
+                        th:attr="data-emp-no=${e.empNo},
+                                 data-name=${e.name},
+                                 data-dept=${e.department != null ? e.department.id : ''},
+                                 data-type=${e.type},
+                                 data-phone=${e.phone},
+                                 data-hire=${e.hireDate != null ? e.hireDate : ''},
+                                 data-role=${e.role},
+                                 data-delete-blocked=${deleteBlocked.containsKey(e.empNo) ? deleteBlocked.get(e.empNo) : ''}">
+                        <span class="col name">
+                            <span th:text="${e.name}">홍길동</span>
+                            <!-- 슈퍼 관리자도 그냥 '관리자'다. 권한 구조는 화면에 드러내지 않는다 -->
+                            <span class="role-badge" th:if="${e.role.name() == 'ADMIN'}">관리자</span>
+                        </span>
+                        <span class="col">
+                            <span class="dept-badge" th:if="${e.department != null}"
+                                th:text="${e.department.name}">개발팀</span>
+                            <span class="muted" th:if="${e.department == null}">미지정</span>
+                        </span>
+                        <span class="col muted"
+                            th:text="${e.type.name() == 'DIRECT'} ? '직접직' : '간접직'">직접직</span>
+                        <span class="col muted" th:text="${e.phone}">010-0000-0000</span>
+                        <span class="col muted"
+                            th:text="${e.hireDate != null} ? ${#temporals.format(e.hireDate, 'yyyy-MM-dd')} : '-'">-</span>
+                        <span class="col-actions">
+                            <button class="icon-btn" type="button" th:attr="data-edit=${e.empNo}" aria-label="수정">
+                                <img th:src="@{/image/icon-edit.svg}" src="/image/icon-edit.svg" alt="">
+                            </button>
+                            <button class="icon-btn" type="button" th:attr="data-resign=${e.empNo}"
+                                th:if="${e.active}" aria-label="퇴사 처리">
+                                <img th:src="@{/image/icon-power-off.svg}" src="/image/icon-power-off.svg" alt="">
+                            </button>
+                        </span>
+                    </li>
+                </ul>
+
+                <nav class="pagination" th:if="${employees.totalPages > 1}">
+                    <a th:href="@{/admin/employees(name=${search.name}, departmentId=${search.departmentId},
+                        type=${search.type}, status=${search.status},
+                        sort=${search.sort}, dir=${search.dir}, page=${employees.number - 1})}"
+                        th:classappend="${employees.first} ? 'is-disabled'" href="#">←</a>
+                    <th:block th:each="i : ${#numbers.sequence(0, employees.totalPages - 1)}">
+                        <a th:href="@{/admin/employees(name=${search.name}, departmentId=${search.departmentId},
+                            type=${search.type}, status=${search.status},
+                            sort=${search.sort}, dir=${search.dir}, page=${i})}"
+                            th:classappend="${i == employees.number} ? 'is-current'"
+                            th:text="${i + 1}">1</a>
+                    </th:block>
+                    <a th:href="@{/admin/employees(name=${search.name}, departmentId=${search.departmentId},
+                        type=${search.type}, status=${search.status},
+                        sort=${search.sort}, dir=${search.dir}, page=${employees.number + 1})}"
+                        th:classappend="${employees.last} ? 'is-disabled'" href="#">→</a>
+                </nav>
+            </div>
+
+            <!-- 빈 상태: 검색/필터 여부로 문구가 갈린다 -->
+            <div class="admin-empty" th:if="${employees.totalElements == 0}">
+                <img th:src="@{/image/robot-empty.png}" src="/image/robot-empty.png" alt="">
+                <p th:text="${search.hasFilter()} ? '검색 결과가 없습니다' : '등록된 직원이 없습니다'">등록된 직원이 없습니다</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- 직원 추가 / 수정 -->
+    <dialog class="admin-modal" id="employeeModal">
+        <form id="employeeForm" method="post">
+            <div class="modal-head">
+                <h2 id="employeeModalTitle">직원 추가</h2>
+                <button class="modal-close-x" type="button" data-close aria-label="닫기">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <label for="f-empNo">사번</label>
+                    <input id="f-empNo" name="empNo" placeholder="예: 20260001" required>
+                    <span class="hint" id="empNoHint" hidden>사번은 수정할 수 없습니다</span>
+                </div>
+                <div class="form-row">
+                    <label for="f-name">이름</label>
+                    <input id="f-name" name="name" placeholder="이름 입력" required>
+                </div>
+                <div class="form-row">
+                    <label for="f-dept">부서</label>
+                    <select id="f-dept" name="departmentId">
+                        <option value="">부서 선택</option>
+                        <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}">부서</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label for="f-type">구분</label>
+                    <select id="f-type" name="type" required>
+                        <option value="">구분 선택</option>
+                        <option value="DIRECT">직접직</option>
+                        <option value="INDIRECT">간접직</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label for="f-phone">전화번호</label>
+                    <input id="f-phone" name="phone" placeholder="010-0000-0000" required>
+                </div>
+                <div class="form-row">
+                    <label for="f-hire">입사일</label>
+                    <input id="f-hire" name="hireDate" type="date">
+                </div>
+                <!-- 역할은 슈퍼 관리자에게만 보인다. 그 밖에는 아예 그리지 않는다 -->
+                <div class="form-row" id="roleRow" th:if="${admin.superAdmin}" hidden>
+                    <label>역할</label>
+                    <div class="mini-seg wide-seg" id="roleSeg">
+                        <button type="button" data-value="EMPLOYEE">직원</button>
+                        <button type="button" data-value="ADMIN">관리자</button>
+                    </div>
+                    <input type="hidden" id="f-role" name="role" value="EMPLOYEE">
+                </div>
+                <!-- 관리자로 지정하거나 PIN 을 초기화할 때만 쓴다. 슈퍼 관리자 전용 -->
+                <div class="form-row" id="pinRow" th:if="${admin.superAdmin}" hidden>
+                    <label for="f-pin">초기 PIN</label>
+                    <input id="f-pin" name="initialPin" type="text" inputmode="numeric" maxlength="6"
+                        autocomplete="off" placeholder="숫자 6자리">
+                    <span class="hint" id="pinHint">본인이 첫 로그인에서 반드시 바꾸게 됩니다.</span>
+                </div>
+            </div>
+            <div class="modal-foot with-delete">
+                <!-- 삭제 불가 사유는 버튼 옆이 아니라 위에 한 줄로 둔다. 길어도 버튼이 안 눌린다 -->
+                <p class="delete-reason" id="deleteReason" hidden></p>
+                <div class="foot-row">
+                    <button class="btn-danger-text" type="button" id="deleteEmployeeBtn" hidden>삭제</button>
+                    <div class="foot-right">
+                        <button class="btn-ghost" type="button" data-close>취소</button>
+                        <button class="btn-solid" type="submit">저장</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- 완전 삭제 -->
+    <dialog class="admin-modal" id="deleteModal">
+        <form id="deleteForm" method="post">
+            <div class="modal-head">
+                <h2>직원 삭제</h2>
+                <button class="modal-close-x" type="button" data-close aria-label="닫기">&times;</button>
+            </div>
+            <p class="confirm-text" id="deleteWho">님을 완전히 삭제할까요?</p>
+            <p class="confirm-sub">되돌릴 수 없습니다.</p>
+            <div class="modal-foot">
+                <button class="btn-ghost" type="button" data-close>취소</button>
+                <button class="btn-danger" type="submit">삭제</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- 퇴사 처리 -->
+    <dialog class="admin-modal" id="resignModal">
+        <form id="resignForm" method="post">
+            <div class="modal-head">
+                <h2>퇴사 처리</h2>
+                <button class="modal-close-x" type="button" data-close aria-label="닫기">&times;</button>
+            </div>
+            <p class="confirm-text" id="resignWho">님을 퇴사 처리할까요?</p>
+            <p class="confirm-sub">이후 폼 대상에서 제외됩니다.</p>
+            <div class="modal-body">
+                <div class="form-row">
+                    <label for="f-resign">퇴사일</label>
+                    <input id="f-resign" name="resignDate" type="date" required>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn-ghost" type="button" data-close>취소</button>
+                <button class="btn-danger" type="submit">퇴사 처리</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- 엑셀 업로드 -->
+    <dialog class="admin-modal wide" id="excelModal">
+        <div class="modal-head">
+            <h2 id="excelTitle">엑셀 파일 업로드</h2>
+            <button class="modal-close-x" type="button" data-close aria-label="닫기">&times;</button>
+        </div>
+        <div class="wizard-steps">
+            <span class="step is-active" data-step="1"><span class="num">1</span>파일 선택</span>
+            <span class="bar"></span>
+            <span class="step" data-step="2"><span class="num">2</span>검증 결과</span>
+            <span class="bar"></span>
+            <span class="step" data-step="3"><span class="num">3</span>완료</span>
+        </div>
+
+        <section data-pane="1">
+            <button class="drop-zone" type="button" id="dropZone">
+                <span id="dropText">파일을 끌어다 놓거나 클릭해서 선택</span>
+            </button>
+            <input type="file" id="excelFile" accept=".xlsx" hidden>
+
+            <a class="text-link" th:href="@{/admin/employees/excel/template}" href="#">템플릿 다운로드</a>
+
+            <p class="info-box">사번 기준으로 추가·갱신됩니다. 파일에 없는 직원은 변경되지 않습니다.</p>
+
+            <div class="modal-foot">
+                <button class="btn-ghost" type="button" data-close>취소</button>
+                <button class="btn-solid" type="button" id="excelValidateBtn">검증</button>
+            </div>
+        </section>
+
+        <section data-pane="2" hidden>
+            <div class="stat-row">
+                <div class="stat-box"><p class="label">추가</p><p class="value" id="statCreate">0명</p></div>
+                <div class="stat-box"><p class="label">갱신</p><p class="value" id="statUpdate">0명</p></div>
+                <div class="stat-box"><p class="label">신규 부서</p><p class="value" id="statDept">0개</p></div>
+            </div>
+
+            <div class="new-depts" id="newDepts" hidden>
+                <p class="set-label">신규 부서</p>
+                <div class="pills" id="newDeptPills"></div>
+            </div>
+
+            <p class="error-title" id="errorTitle" hidden></p>
+            <div class="error-table" id="errorTable" hidden>
+                <div class="r head"><span class="c-no">행 번호</span><span class="c-emp">사번</span><span class="c-why">사유</span></div>
+            </div>
+
+            <p class="banner ok" id="okBanner" hidden>오류 없이 검증되었습니다</p>
+            <p class="banner warn" id="errorNote" hidden>오류를 수정한 뒤 다시 올려주세요</p>
+
+            <div class="modal-foot">
+                <button class="btn-ghost" type="button" id="excelBackBtn">다시 선택</button>
+                <button class="btn-solid" type="button" id="excelApplyBtn">반영</button>
+            </div>
+        </section>
+
+        <section data-pane="3" hidden>
+            <div class="done-block">
+                <p class="done-msg" id="doneMsg">반영했습니다</p>
+                <p class="done-sub">직원 정보가 업데이트되었습니다</p>
+            </div>
+            <div class="modal-foot centered">
+                <button class="btn-solid" type="button" id="excelDoneBtn">닫기</button>
+            </div>
+        </section>
+    </dialog>
+
+    <script th:src="@{/js/admin-employees.js}" src="/js/admin-employees.js"></script>
+</body>
+
+</html>

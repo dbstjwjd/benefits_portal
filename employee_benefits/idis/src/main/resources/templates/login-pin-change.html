@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PIN 변경 | IDIS</title>
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/image/favicon-32.png}" href="/image/favicon-32.png">
+    <link rel="icon" type="image/png" th:href="@{/image/favicon.png}" href="/image/favicon.png">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css">
+    <link rel="stylesheet" th:href="@{/css/login.css}" href="/css/login.css">
+</head>
+
+<body class="app">
+    <div class="login-shell">
+        <main class="login-content pin-content">
+            <div class="brand">
+                <img class="logo" th:src="@{/image/idis_logo.png}" src="/image/idis_logo.png" alt="IDIS">
+                <div>
+                    <h1 class="title">PIN 변경</h1>
+                    <p class="desc">처음 받은 PIN 은 쓸 수 없습니다. 새 PIN 을 정해 주세요.</p>
+                </div>
+            </div>
+
+            <p class="alert" th:if="${error}" th:text="${error}">새 PIN 이 서로 다릅니다</p>
+
+            <form id="pinForm" th:action="@{/login/pin/change}" action="/login/pin/change" method="post" novalidate>
+                <div class="field">
+                    <label for="newPin">새 PIN <span class="req">*</span></label>
+                    <div class="input-box">
+                        <input id="newPin" name="newPin" type="password" inputmode="numeric" autocomplete="new-password"
+                            th:attr="maxlength=${pinLength}" placeholder="숫자 6자리" autofocus>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="confirmPin">새 PIN 확인 <span class="req">*</span></label>
+                    <div class="input-box">
+                        <input id="confirmPin" name="confirmPin" type="password" inputmode="numeric"
+                            autocomplete="new-password" th:attr="maxlength=${pinLength}" placeholder="한 번 더 입력">
+                    </div>
+                    <p class="msg" id="pinMsg"></p>
+                </div>
+
+                <div class="actions">
+                    <button class="btn-primary" type="submit">변경하고 들어가기</button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script th:inline="javascript">
+        const LEN = /*[[${pinLength}]]*/ 6;
+        const form = document.getElementById("pinForm");
+        const newPin = document.getElementById("newPin");
+        const confirmPin = document.getElementById("confirmPin");
+        const msg = document.getElementById("pinMsg");
+        const field = confirmPin.closest(".field");
+
+        [newPin, confirmPin].forEach((input) => {
+            input.addEventListener("input", () => {
+                input.value = input.value.replace(/[^0-9]/g, "").slice(0, LEN);
+                field.classList.remove("err");
+                msg.textContent = "";
+            });
+        });
+
+        form.addEventListener("submit", (e) => {
+            let error = "";
+            if (newPin.value.length !== LEN) error = `PIN 은 숫자 ${LEN}자리여야 합니다`;
+            else if (newPin.value !== confirmPin.value) error = "새 PIN 이 서로 다릅니다";
+
+            if (error) {
+                e.preventDefault();
+                field.classList.add("err");
+                msg.textContent = error;
+            }
+        });
+    </script>
+</body>
+
+</html>

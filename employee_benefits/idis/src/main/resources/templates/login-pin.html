@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>관리자 인증 | IDIS</title>
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/image/favicon-32.png}" href="/image/favicon-32.png">
+    <link rel="icon" type="image/png" th:href="@{/image/favicon.png}" href="/image/favicon.png">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css">
+    <link rel="stylesheet" th:href="@{/css/login.css}" href="/css/login.css">
+</head>
+
+<body class="app">
+    <div class="login-shell">
+        <main class="login-content pin-content">
+            <div class="brand">
+                <img class="logo" th:src="@{/image/idis_logo.png}" src="/image/idis_logo.png" alt="IDIS">
+                <div>
+                    <h1 class="title">관리자 인증</h1>
+                    <p class="desc">관리자 화면에 들어가려면 PIN 을 입력해 주세요.</p>
+                </div>
+            </div>
+
+            <p class="alert" th:if="${error}" th:text="${error}">PIN 이 일치하지 않습니다</p>
+
+            <form id="pinForm" th:action="@{/login/pin}" action="/login/pin" method="post" novalidate>
+                <div class="field">
+                    <label for="pin">PIN <span class="req">*</span></label>
+                    <div class="input-box">
+                        <input id="pin" name="pin" type="password" inputmode="numeric" autocomplete="off"
+                            th:attr="maxlength=${pinLength}" placeholder="숫자 6자리" autofocus>
+                    </div>
+                    <p class="msg" id="pinMsg"></p>
+                </div>
+
+                <div class="actions">
+                    <button class="btn-primary" type="submit">확인</button>
+                    <a class="btn-outline" th:href="@{/login}" href="/login">처음으로</a>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script th:inline="javascript">
+        const LEN = /*[[${pinLength}]]*/ 6;
+        const form = document.getElementById("pinForm");
+        const pin = document.getElementById("pin");
+        const msg = document.getElementById("pinMsg");
+        const field = pin.closest(".field");
+
+        // 숫자만 남긴다. 붙여넣기도 같은 규칙을 탄다
+        pin.addEventListener("input", () => {
+            pin.value = pin.value.replace(/[^0-9]/g, "").slice(0, LEN);
+            field.classList.remove("err");
+            msg.textContent = "";
+        });
+
+        form.addEventListener("submit", (e) => {
+            if (pin.value.length !== LEN) {
+                e.preventDefault();
+                field.classList.add("err");
+                msg.textContent = `PIN 은 숫자 ${LEN}자리여야 합니다`;
+            }
+        });
+    </script>
+</body>
+
+</html>

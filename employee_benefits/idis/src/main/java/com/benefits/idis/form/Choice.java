@@ -35,9 +35,4 @@ public class Choice {
         this.question = question;
     }
 
-    public void update(String content, String imagePath, int sortOrder) {
-        this.content = content;
-        this.imagePath = imagePath;
-        this.sortOrder = sortOrder;
-    }
 }

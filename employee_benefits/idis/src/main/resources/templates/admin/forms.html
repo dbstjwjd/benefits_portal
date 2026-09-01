@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{admin/layout :: head('폼 관리')}"></head>
+
+<body class="admin">
+    <div th:replace="~{admin/layout :: tooNarrow}"></div>
+
+    <div class="admin-shell">
+        <aside th:replace="~{admin/layout :: side('forms', ${admin})}"></aside>
+
+        <main class="admin-main">
+            <div class="admin-head">
+                <h1>폼 관리</h1>
+                <div class="actions">
+                    <a class="btn-solid" th:href="@{/admin/forms/new}" href="/admin/forms/new">+ 새 폼</a>
+                </div>
+            </div>
+
+            <p class="toast ok" th:if="${toast}" th:text="${toast}"></p>
+            <p class="toast err" th:if="${error}" th:text="${error}"></p>
+
+            <div class="summary-cards summary-cards-3">
+                <div class="summary-card">
+                    <p class="label">진행 중</p>
+                    <p class="value" th:text="${summary.openCount()} + '개'">0개</p>
+                </div>
+                <div class="summary-card">
+                    <p class="label">마감 임박 (D-3 이내)</p>
+                    <p class="value" th:text="${summary.dueSoonCount()} + '개'">0개</p>
+                </div>
+                <div class="summary-card">
+                    <p class="label">이번 달 마감</p>
+                    <p class="value" th:text="${summary.endingThisMonth()} + '개'">0개</p>
+                </div>
+            </div>
+
+            <form class="admin-toolbar" th:action="@{/admin/forms}" method="get">
+                <div class="filters">
+                    <label class="field-search">
+                        <img th:src="@{/image/icon-search.svg}" src="/image/icon-search.svg" alt="">
+                        <input type="search" name="keyword" placeholder="폼 제목 검색"
+                            th:value="${search.keyword}">
+                    </label>
+                </div>
+
+                <!-- 상태는 링크로 이동해 현재 검색어를 유지한다 -->
+                <div class="segmented">
+                    <a th:each="s : ${ {'open','closed','all'} }"
+                        th:href="@{/admin/forms(keyword=${search.keyword}, status=${s})}"
+                        th:classappend="${search.status == s} ? 'is-active'"
+                        th:text="${s == 'open'} ? '진행 중' : (${s == 'closed'} ? '마감' : '전체')">진행 중</a>
+                </div>
+            </form>
+
+            <p class="result-count" th:text="'검색 결과 ' + ${forms.totalElements} + '건'">검색 결과 0건</p>
+
+            <!-- 목록 -->
+            <div class="admin-table form-table" th:if="${forms.totalElements > 0}">
+                <div class="thead">
+                    <span class="col">폼 제목</span>
+                    <span class="col">대상</span>
+                    <span class="col">마감일</span>
+                    <span class="col">응답 현황</span>
+                    <span class="col-actions">관리</span>
+                </div>
+                <ul class="rows">
+                    <li class="row" th:each="f : ${forms.content}"
+                        th:classappend="${f.closed()} ? 'is-closed'">
+                        <span class="col name" th:text="${f.title()}">추석 선물 신청</span>
+
+                        <span class="col target">
+                            <span class="muted" th:if="${f.everyone()}">전체</span>
+                            <th:block th:unless="${f.everyone()}">
+                                <span class="dept-badge" th:if="${f.typeLabel() != null}"
+                                    th:text="${f.typeLabel()}">직접직</span>
+                                <span class="dept-badge" th:each="d : ${f.departmentNames()}"
+                                    th:text="${d}">개발팀</span>
+                            </th:block>
+                        </span>
+
+                        <span class="col due">
+                            <span class="muted"
+                                th:text="${f.endAt() != null} ? ${#temporals.format(f.endAt(), 'yyyy-MM-dd')} : '상시'">2024-09-10</span>
+                            <span class="day-badge" th:if="${f.dayBadge() != null}"
+                                th:classappend="${f.urgent()} ? 'is-urgent'"
+                                th:text="${f.dayBadge()}">D-3</span>
+                        </span>
+
+                        <span class="col rate">
+                            <span class="count" th:text="${f.responseCount()} + ' / ' + ${f.targetCount()}">0 / 0</span>
+                            <span class="track">
+                                <span class="fill" th:style="'width:' + ${f.ratePercent()} + '%'"></span>
+                            </span>
+                        </span>
+
+                        <span class="col-actions">
+                            <a class="icon-btn" th:href="@{/admin/forms/{id}/edit(id=${f.id()})}"
+                                href="#" aria-label="편집">
+                                <img th:src="@{/image/icon-edit.svg}" src="/image/icon-edit.svg" alt="">
+                            </a>
+                            <a class="icon-btn" th:href="@{/admin/responses(formId=${f.id()})}"
+                                href="#" aria-label="응답 보기">
+                                <img th:src="@{/image/icon-eye.svg}" src="/image/icon-eye.svg" alt="">
+                            </a>
+                        </span>
+                    </li>
+                </ul>
+
+                <nav class="pagination" th:if="${forms.totalPages > 1}">
+                    <a th:href="@{/admin/forms(keyword=${search.keyword}, status=${search.status},
+                        page=${forms.number - 1})}"
+                        th:classappend="${forms.first} ? 'is-disabled'" href="#">←</a>
+                    <th:block th:each="i : ${#numbers.sequence(0, forms.totalPages - 1)}">
+                        <a th:href="@{/admin/forms(keyword=${search.keyword}, status=${search.status}, page=${i})}"
+                            th:classappend="${i == forms.number} ? 'is-current'"
+                            th:text="${i + 1}">1</a>
+                    </th:block>
+                    <a th:href="@{/admin/forms(keyword=${search.keyword}, status=${search.status},
+                        page=${forms.number + 1})}"
+                        th:classappend="${forms.last} ? 'is-disabled'" href="#">→</a>
+                </nav>
+            </div>
+
+            <!-- 빈 상태: 폼이 아예 없을 때와 조건에 걸리는 게 없을 때를 구분한다 -->
+            <div class="admin-empty" th:if="${forms.totalElements == 0}">
+                <img th:src="@{/image/robot-empty.png}" src="/image/robot-empty.png" alt="">
+                <p th:text="${search.emptyMessage(summary.totalCount() > 0)}">등록된 폼이 없습니다</p>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

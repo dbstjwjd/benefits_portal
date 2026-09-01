@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{admin/layout :: head('폼 편집')}"></head>
+
+<body class="admin">
+    <div th:replace="~{admin/layout :: tooNarrow}"></div>
+
+    <div class="admin-shell">
+        <aside th:replace="~{admin/layout :: side('forms', ${admin})}"></aside>
+
+        <main class="admin-main edit-main">
+            <form id="formEdit" method="post"
+                th:action="${formId == null} ? @{/admin/forms} : @{/admin/forms/{id}(id=${formId})}"
+                action="/admin/forms">
+
+                <div class="edit-bar">
+                    <nav class="crumb">
+                        <a th:href="@{/admin/forms}" href="/admin/forms">폼 관리</a>
+                        <span>/</span>
+                        <strong th:text="${formTitle != ''} ? ${formTitle} : '새 폼'">새 폼</strong>
+                    </nav>
+                    <div class="actions">
+                        <a class="btn-line" th:if="${formId != null}"
+                            th:href="@{/admin/forms/{id}/preview(id=${formId})}" href="#"
+                            target="_blank" rel="noopener">미리보기</a>
+                        <button class="btn-solid" type="submit" id="saveBtn">저장</button>
+                    </div>
+                </div>
+
+                <!-- 편집기가 모르는 질문 타입이 섞여 있을 때. JS 가 켠다 -->
+                <p class="lock-banner is-error" id="unsupportedBanner" hidden>
+                    <img th:src="@{/image/icon-alert-triangle.svg}" src="/image/icon-alert-triangle.svg" alt="">
+                    <span>지원하지 않는 질문 타입이 포함돼 있어 저장할 수 없습니다.</span>
+                </p>
+
+                <p class="lock-banner" th:if="${locked}">
+                    <img th:src="@{/image/icon-alert-triangle.svg}" src="/image/icon-alert-triangle.svg" alt="">
+                    <span th:text="'응답 ' + ${responseCount} + '건이 있어 질문 구조는 수정할 수 없습니다. 마감일만 변경 가능합니다.'">
+                        응답이 있어 질문 구조는 수정할 수 없습니다.
+                    </span>
+                </p>
+
+                <div class="edit-body">
+                    <p class="toast ok" th:if="${toast}" th:text="${toast}"></p>
+                    <p class="toast err" th:if="${error}" th:text="${error}"></p>
+
+                    <!-- 기본 정보 -->
+                    <section class="edit-card">
+                        <div class="form-row">
+                            <label for="f-title">폼 제목</label>
+                            <input id="f-title" name="title" maxlength="200" required
+                                placeholder="예: 추석 선물 신청" th:value="${formTitle}">
+                        </div>
+
+                        <div class="form-row">
+                            <label for="f-desc">설명</label>
+                            <textarea id="f-desc" name="description" rows="2"
+                                placeholder="응답자에게 보여줄 안내 문구" th:text="${description}"></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <label>대상</label>
+
+                            <div class="target-line">
+                                <span class="target-key">구분</span>
+                                <div class="mini-seg" id="typeSeg">
+                                    <button type="button" data-value="ALL">전체</button>
+                                    <button type="button" data-value="DIRECT">직접직</button>
+                                    <button type="button" data-value="INDIRECT">간접직</button>
+                                </div>
+                                <input type="hidden" name="target" id="targetInput" th:value="${target}">
+                            </div>
+
+                            <div class="target-line">
+                                <span class="target-key">부서</span>
+                                <div class="mini-seg" id="deptSeg">
+                                    <button type="button" data-value="all">전체</button>
+                                    <button type="button" data-value="pick">선택</button>
+                                </div>
+                            </div>
+
+                            <div class="dept-picker" id="deptPicker">
+                                <span class="chips" id="deptChips"></span>
+                                <select class="dept-add" id="deptAdd">
+                                    <option value="">+ 부서 추가</option>
+                                    <option th:each="d : ${departments}" th:value="${d.id}"
+                                        th:text="${d.name}">부서</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <label for="f-endDate">마감일</label>
+                            <div class="due-line">
+                                <input id="f-endDate" type="date" name="endDate" th:value="${endDate}">
+                                <input id="f-endTime" type="time" name="endTime" th:value="${endTime}">
+                            </div>
+                            <span class="hint">비우면 마감 없이 계속 열려 있습니다</span>
+                        </div>
+                    </section>
+
+                    <!-- 질문 (스크립트가 그린다) -->
+                    <div id="questionList"></div>
+
+                    <button class="add-question" type="button" id="addQuestion">+ 질문 추가</button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <span id="editData" hidden
+        th:attr="data-questions=${questionsJson},
+                 data-departments=${selectedDepartmentIds},
+                 data-locked=${locked}"></span>
+
+    <!-- 질문 카드 -->
+    <template id="questionTemplate">
+        <section class="q-card">
+            <div class="q-head">
+                <span class="grip" data-grip title="끌어서 순서 변경"></span>
+                <strong class="q-no">질문</strong>
+                <!-- 접혔을 때만 보이는 요약 -->
+                <span class="q-summary" data-summary></span>
+                <span class="q-meta" data-meta></span>
+                <select class="q-type" data-type>
+                    <option value="SHORT_TEXT">단답</option>
+                    <option value="LONG_TEXT">장문</option>
+                    <option value="PHONE">전화번호</option>
+                    <option value="SINGLE_CHOICE">단일선택</option>
+                    <option value="MULTI_CHOICE">다중선택</option>
+                    <option value="IMAGE_CHOICE">이미지 선택</option>
+                    <option value="DATE">날짜</option>
+                    <option value="ADDRESS">주소</option>
+                </select>
+            </div>
+
+            <input class="q-title" data-title maxlength="500" placeholder="질문을 입력해 주세요">
+
+            <p class="q-hint" data-hint hidden></p>
+
+            <div data-part="choices" hidden>
+                <ul class="choice-list" data-choices></ul>
+                <button class="link-add" type="button" data-add-choice>+ 선택지 추가</button>
+            </div>
+
+            <div data-part="images" hidden>
+                <div class="mini-seg" data-image-mode>
+                    <button type="button" data-value="false">하나만 선택</button>
+                    <button type="button" data-value="true">여러 개 선택</button>
+                </div>
+                <input type="hidden" data-multiple value="false">
+                <div class="image-grid" data-images></div>
+                <input type="file" accept="image/jpeg,image/png,image/webp" data-image-input hidden>
+            </div>
+
+            <div class="q-max" data-part="max" hidden>
+                <span class="q-key">최대 선택 수</span>
+                <input type="number" min="1" data-max-select placeholder="제한 없음">
+            </div>
+
+            <div data-part="date" hidden>
+                <p class="q-key">허용 범위 <span class="opt">(선택 사항)</span></p>
+                <div class="date-range">
+                    <input type="date" data-min-date>
+                    <span>~</span>
+                    <input type="date" data-max-date>
+                </div>
+                <p class="q-hint">비우면 제한 없이 모든 날짜 선택 가능</p>
+            </div>
+
+            <div class="q-foot">
+                <label class="switch">
+                    <span>필수</span>
+                    <input type="checkbox" data-required>
+                    <span class="track"></span>
+                </label>
+                <div class="q-actions">
+                    <button class="icon-btn" type="button" data-duplicate aria-label="질문 복제">
+                        <img th:src="@{/image/icon-copy.svg}" src="/image/icon-copy.svg" alt="">
+                    </button>
+                    <button class="icon-btn" type="button" data-delete aria-label="질문 삭제">
+                        <img th:src="@{/image/icon-trash.svg}" src="/image/icon-trash.svg" alt="">
+                    </button>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <!-- 선택지 한 줄 -->
+    <template id="choiceTemplate">
+        <li class="choice">
+            <span class="grip" data-choice-grip title="끌어서 순서 변경"></span>
+            <span class="bullet"></span>
+            <input data-choice-content maxlength="500" placeholder="선택지 내용">
+            <button class="choice-del" type="button" data-choice-delete aria-label="선택지 삭제">&times;</button>
+        </li>
+    </template>
+
+    <!-- 이미지 선택지 타일 -->
+    <template id="imageTemplate">
+        <div class="tile">
+            <button class="tile-del" type="button" data-choice-delete aria-label="이미지 삭제">&times;</button>
+            <img data-tile-image alt="">
+            <input data-choice-content maxlength="500" placeholder="선택지 이름">
+            <input type="hidden" data-choice-image>
+        </div>
+    </template>
+
+    <script th:src="@{/js/admin-form-edit.js}" src="/js/admin-form-edit.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<!--
+  관리자 공통 레이아웃.
+  각 화면은 th:replace 로 head/side 를 끼우고 admin-main 안쪽만 채운다.
+-->
+
+<head th:fragment="head(pageTitle)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${pageTitle} + ' | IDIS 관리자'">IDIS 관리자</title>
+    <link rel="icon" type="image/png" sizes="32x32"
+        th:href="@{/image/favicon-32.png}" href="/image/favicon-32.png">
+    <link rel="icon" type="image/png"
+        th:href="@{/image/favicon.png}" href="/image/favicon.png">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css">
+    <link rel="stylesheet" th:href="@{/css/admin.css}" href="/css/admin.css">
+</head>
+
+<body>
+    <!-- 1024px 미만 안내 -->
+    <div th:fragment="tooNarrow" class="admin-too-narrow">
+        <img th:src="@{/image/domi-laptop.png}" src="/image/domi-laptop.png" alt="">
+        <p>
+            <span class="brand">IDIS 관리자 콘솔</span>
+            관리자 페이지는 PC 또는 태블릿 가로 화면에서<br>이용해 주세요
+        </p>
+    </div>
+
+    <!-- 사이드바 -->
+    <aside th:fragment="side(menu, admin)" class="admin-side">
+        <div class="side-top">
+            <div class="brand">
+                <img th:src="@{/image/idis_logo.png}" src="/image/idis_logo.png" alt="IDIS">
+                <span>관리자 콘솔</span>
+            </div>
+            <nav class="admin-nav">
+                <a th:href="@{/admin}" href="/admin"
+                    th:classappend="${menu == 'dashboard'} ? 'is-active'">대시보드</a>
+                <a th:href="@{/admin/forms}" href="/admin/forms"
+                    th:classappend="${menu == 'forms'} ? 'is-active'">폼 관리</a>
+                <a th:href="@{/admin/responses}" href="/admin/responses"
+                    th:classappend="${menu == 'responses'} ? 'is-active'">응답 현황</a>
+                <a th:href="@{/admin/employees}" href="/admin/employees"
+                    th:classappend="${menu == 'employees'} ? 'is-active'">직원 관리</a>
+                <a th:href="@{/admin/settings}" href="/admin/settings"
+                    th:classappend="${menu == 'settings'} ? 'is-active'">설정</a>
+            </nav>
+        </div>
+        <div class="me">
+            <a class="to-employee" th:href="@{/forms}" href="/forms">직원 화면으로</a>
+            <strong th:text="${admin.name} + ' (관리자)'">김관리 (관리자)</strong>
+            <div class="me-actions">
+                <a th:href="@{/admin/pin}" href="/admin/pin">PIN 변경</a>
+                <form th:action="@{/logout}" action="/logout" method="post">
+                    <button type="submit">로그아웃</button>
+                </form>
+            </div>
+        </div>
+    </aside>
+</body>
+
+</html>

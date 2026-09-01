@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{admin/layout :: head('PIN 변경')}"></head>
+
+<body class="admin">
+    <div th:replace="~{admin/layout :: tooNarrow}"></div>
+
+    <div class="admin-shell">
+        <aside th:replace="~{admin/layout :: side('', ${admin})}"></aside>
+
+        <main class="admin-main">
+            <div class="admin-head">
+                <h1>PIN 변경</h1>
+            </div>
+
+            <p class="toast ok" th:if="${toast}" th:text="${toast}"></p>
+            <p class="toast err" th:if="${error}" th:text="${error}"></p>
+
+            <div class="settings">
+                <section class="set-card">
+                    <form id="pinForm" th:action="@{/admin/pin}" method="post" novalidate>
+                        <h2>관리자 PIN</h2>
+                        <p class="sub">관리자 화면에 들어올 때 쓰는 숫자 6자리입니다. 다른 사람과 공유하지 마세요.</p>
+
+                        <div class="set-row">
+                            <label for="currentPin">현재 PIN</label>
+                            <input id="currentPin" name="currentPin" type="password" inputmode="numeric"
+                                autocomplete="current-password" th:attr="maxlength=${pinLength}" placeholder="숫자 6자리">
+                        </div>
+                        <div class="set-row">
+                            <label for="newPin">새 PIN</label>
+                            <input id="newPin" name="newPin" type="password" inputmode="numeric"
+                                autocomplete="new-password" th:attr="maxlength=${pinLength}" placeholder="숫자 6자리">
+                        </div>
+                        <div class="set-row">
+                            <label for="confirmPin">새 PIN 확인</label>
+                            <input id="confirmPin" name="confirmPin" type="password" inputmode="numeric"
+                                autocomplete="new-password" th:attr="maxlength=${pinLength}" placeholder="한 번 더 입력">
+                        </div>
+
+                        <p class="pin-msg" id="pinMsg"></p>
+
+                        <div class="set-foot">
+                            <button class="btn-solid" type="submit">변경</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script th:inline="javascript">
+        (() => {
+            const LEN = /*[[${pinLength}]]*/ 6;
+            const form = document.getElementById("pinForm");
+            const msg = document.getElementById("pinMsg");
+            const fields = ["currentPin", "newPin", "confirmPin"].map((id) => document.getElementById(id));
+
+            fields.forEach((input) => {
+                input.addEventListener("input", () => {
+                    input.value = input.value.replace(/[^0-9]/g, "").slice(0, LEN);
+                    msg.textContent = "";
+                });
+            });
+
+            const [current, next, confirm] = fields;
+            form.addEventListener("submit", (e) => {
+                let error = "";
+                if (current.value.length !== LEN || next.value.length !== LEN) {
+                    error = `PIN 은 숫자 ${LEN}자리여야 합니다`;
+                } else if (next.value !== confirm.value) {
+                    error = "새 PIN 이 서로 다릅니다";
+                } else if (next.value === current.value) {
+                    error = "지금 쓰는 PIN 과 다른 값으로 정해주세요";
+                }
+                if (error) {
+                    e.preventDefault();
+                    msg.textContent = error;
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

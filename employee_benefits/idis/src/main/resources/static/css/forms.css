@@ -1,63 +1,262 @@
-/* 폼 목록 / 작성 / 완료 / 신청 내역 화면 전용. theme.css 다음에 로드한다. */
+/* 홈 / 설문 작성 / 제출 완료 / 신청내역 화면 전용. theme.css 다음에 로드한다. */
+
+/* ── 홈 ────────────────────────────────────────────────── */
+
+.home-header {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px 24px 20px;
+}
+
+.home-header .top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.home-header .logo {
+    width: 80px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.home-header .greeting {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.home-header .greeting h1 {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text-strong);
+}
+
+.home-header .greeting p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.mascot-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.mascot-area img {
+    width: 159px;
+    height: 159px;
+    object-fit: contain;
+}
+
+/*
+ * 구분선부터 아래(설문 목록 + 신청내역 버튼)를 화면 바닥에 붙인다.
+ * 남는 공간이 구분선 위로 들어가므로, 목록이 길어지면 자연스럽게 아래로 밀린다.
+ * body.app 이 이미 flex column + min-height:100dvh 라 auto 마진만 얹으면 된다.
+ */
+body.home .divider-line {
+    margin-top: auto;
+}
+
+.divider-line {
+    height: 1px;
+    background: var(--border);
+}
+
+.section-label {
+    padding: 24px 24px 8px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
+.survey-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 24px 24px;
+    list-style: none;
+    margin: 0;
+}
+
+.survey-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: inherit;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .03));
+}
+
+.survey-card:active {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+}
+
+.survey-card .texts {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.survey-card .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.badge-dday {
+    flex: 0 0 auto;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: var(--dday);
+    color: var(--text-on-primary);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.survey-card .name {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--text-strong);
+}
+
+.survey-card .meta {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.survey-card .chevron {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+}
+
+.history-link {
+    display: flex;
+    justify-content: flex-end;
+    padding: 4px 24px 32px;
+}
+
+/* ── 설문 작성 ─────────────────────────────────────────── */
+
+body.survey {
+    background: var(--bg-screen);
+}
+
+.form-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px;
+}
 
 .form-desc {
-    margin-top: 10px;
-    font-size: 13.5px;
-    color: var(--gray-1);
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    opacity: .9;
 }
-
-.page .alert,
-.page .info {
-    margin-top: 18px;
-}
-
-/* ── 질문 ──────────────────────────────────────────────── */
 
 .question {
-    margin-top: 28px;
-}
-
-.section {
-    margin-top: 36px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--line);
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--title);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .04));
 }
 
 .q-title {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.45;
-    color: var(--title);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--text-heading);
 }
 
 .q-title .req {
-    color: var(--error);
+    color: var(--required);
+    font-size: 14px;
 }
 
-.question input[type="text"],
-.question input[type="number"],
-.question input[type="date"],
+/* 선택지 (라디오 / 체크박스 공통) */
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: var(--h-input);
+    padding: 0 16px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-strong);
+    cursor: pointer;
+}
+
+.option:has(input:checked) {
+    border: 1.5px solid var(--brand);
+    font-size: 16px;
+    font-weight: 700;
+    filter: drop-shadow(0 2px 4px rgba(0, 156, 166, .2));
+}
+
+.option:has(input:disabled) {
+    cursor: default;
+    color: var(--text-secondary);
+}
+
+.option input {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--brand);
+}
+
+/* 텍스트 계열 입력 */
+
+.question input:not([type="radio"], [type="checkbox"]),
 .question select,
 .question textarea {
     width: 100%;
-    border: 1px solid var(--line);
-    border-radius: var(--r-control);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     padding: 0 16px;
-    font-size: 15px;
+    background: var(--bg-base);
     font-family: inherit;
-    color: var(--ink);
-    background: #fff;
+    font-size: 14px;
+    color: var(--text-strong);
 }
 
-.question input[type="text"],
-.question input[type="number"],
-.question input[type="date"],
+.question input:not([type="radio"], [type="checkbox"]),
 .question select {
     height: var(--h-input);
 }
@@ -72,54 +271,18 @@
 .question select:focus,
 .question textarea:focus {
     outline: none;
-    border-color: var(--main);
+    border-color: var(--brand);
 }
 
 .question input[readonly],
 .question input:disabled,
 .question select:disabled,
 .question textarea:disabled {
-    background: var(--surface);
-    color: var(--gray-1);
+    background: var(--bg-soft);
+    color: var(--text-secondary);
 }
 
-/* ── 선택지 ────────────────────────────────────────────── */
-
-.choices {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.choice {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 16px;
-    border: 1px solid var(--line);
-    border-radius: var(--r-control);
-    font-size: 15px;
-    cursor: pointer;
-}
-
-.choice:has(input:checked) {
-    border-color: var(--main);
-    background: var(--mint);
-    font-weight: 600;
-}
-
-.choice:has(input:disabled) {
-    cursor: default;
-    color: var(--gray-1);
-}
-
-.choice input {
-    accent-color: var(--main);
-    width: 18px;
-    height: 18px;
-}
-
-/* ── 주소 ──────────────────────────────────────────────── */
+/* 주소 */
 
 .address {
     display: flex;
@@ -141,67 +304,215 @@
     flex: 0 0 auto;
     height: var(--h-input);
     padding: 0 16px;
-    border: 1px solid var(--main);
-    border-radius: var(--r-control);
-    background: #fff;
+    border: 1px solid var(--brand);
+    border-radius: var(--radius);
+    background: var(--bg-base);
     font-family: inherit;
     font-size: 14px;
-    font-weight: 600;
-    color: var(--main);
-    cursor: pointer;
+    font-weight: 700;
+    color: var(--brand);
     white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+@media (hover: hover) {
+    .zip-btn:hover {
+        background: var(--brand-soft-hover);
+    }
 }
 
 .zip-btn:active {
-    background: var(--mint);
+    background: var(--bg-soft);
 }
 
 .unsupported {
     padding: 12px 14px;
-    border: 1px dashed var(--line);
-    border-radius: var(--r-control);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
     font-size: 13px;
-    color: var(--gray-2);
+    color: var(--text-placeholder);
 }
 
-/* ── 제출 ──────────────────────────────────────────────── */
-
-.submit-btn {
-    margin-top: 36px;
+.submit-wrap {
+    display: flex;
+    gap: 8px;
+    padding-top: 24px;
 }
 
-/* ── 완료 화면 ─────────────────────────────────────────── */
+.submit-wrap > * {
+    flex: 1;
+    min-width: 0;
+}
 
-.done-page {
+/* ── 제출 완료 ─────────────────────────────────────────── */
+
+.center-block {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 24px;
     text-align: center;
-    padding-top: 56px;
 }
 
-.done-page .char {
-    height: 96px;
-    width: auto;
+.center-block .mascot {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
 }
 
-.done-title {
-    margin-top: 20px;
+.center-block .texts {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.center-block h1 {
     font-size: 22px;
     font-weight: 700;
-    color: var(--title);
+    line-height: 1.4;
+    color: var(--text-strong);
 }
 
-.done-form {
-    margin-top: 12px;
+.center-block p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+/* ── 신청내역 ──────────────────────────────────────────── */
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    margin: 0;
+    list-style: none;
+}
+
+.history-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: inherit;
+    filter: drop-shadow(0 4px 3px rgba(0, 0, 0, .02));
+}
+
+.history-card:active {
+    border-color: var(--brand);
+}
+
+.history-card .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.history-card .name {
     font-size: 15px;
-    font-weight: 600;
-    color: var(--main-dark);
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--text-strong);
 }
 
-.done-notice {
-    margin-top: 8px;
+.history-card .rule {
+    height: 1px;
+    background: var(--border);
+}
+
+.history-card .summary {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-card .date {
+    flex: 0 0 auto;
     font-size: 13px;
-    color: var(--gray-2);
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-placeholder);
 }
 
-.done-page .btn-primary {
-    margin-top: 32px;
+/* ── 이미지 선택지 ─────────────────────────────────────── */
+
+.q-limit {
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.image-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.image-option {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text-strong);
+    cursor: pointer;
+}
+
+/* 선택 표시는 테두리로 하고 기본 동그라미는 감춘다 */
+.image-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.image-option img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background: var(--bg-screen);
+    border-radius: 6px;
+}
+
+.image-option:has(input:checked) {
+    border: 1.5px solid var(--brand);
+    font-weight: 700;
+    filter: drop-shadow(0 2px 4px rgba(0, 156, 166, .2));
+}
+
+.image-option:has(input:disabled) {
+    cursor: default;
+    opacity: .65;
+}
+
+/* ── 데스크탑: 시안 PC 카드 여백 ───────────────────────── */
+
+@media (min-width: 768px) {
+    .home-header {
+        padding-top: 50px;
+    }
+
+    /* 카드 안쪽은 흰 바탕이다. 질문은 테두리로 구분된다 (시안 pc-form) */
+    body.survey {
+        background: var(--bg-base);
+    }
 }

@@ -1,0 +1,2717 @@
+/* 관리자 콘솔 공통 레이아웃. theme.css 다음에 로드한다. */
+
+:root {
+    --admin-sidebar: 240px;
+    --admin-sidebar-narrow: 200px;
+    --admin-gutter: 32px;
+    --admin-active-bg: #E6F5F6;
+}
+
+body.admin {
+    background: var(--bg-base);
+    color: var(--text-strong);
+}
+
+/* ── 좁은 화면 안내 ────────────────────────────────────── */
+
+.admin-too-narrow {
+    display: none;
+    flex-direction: column;
+    min-height: 100dvh;
+    padding: 48px 24px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: var(--bg-base);
+}
+
+.admin-too-narrow p {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.admin-too-narrow .brand {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--brand);
+}
+
+/*
+ * 1024px 미만에서는 콘솔을 통째로 감춘다.
+ * .admin-shell 의 기본 규칙이 아래에 있어 선택자를 한 단계 더 좁혀 순서에 흔들리지 않게 한다.
+ */
+@media (max-width: 1023px) {
+    body.admin {
+        /* 안내 화면만 꽉 채우고 스크롤은 만들지 않는다 */
+        overflow: hidden;
+    }
+
+    body.admin .admin-shell {
+        display: none;
+    }
+
+    body.admin .admin-too-narrow {
+        display: flex;
+        height: 100dvh;
+        overflow: hidden;
+    }
+}
+
+/* ── 셸 ────────────────────────────────────────────────── */
+
+.admin-shell {
+    display: flex;
+    min-height: 100dvh;
+}
+
+/* ── 사이드바 ──────────────────────────────────────────── */
+
+.admin-side {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    width: var(--admin-sidebar);
+    height: 100dvh;
+    padding: 24px 16px;
+    background: var(--bg-base);
+    border-right: 1px solid var(--border);
+}
+
+/* 메뉴가 길어지면 이쪽만 스크롤된다. 하단은 건드리지 않는다 */
+.admin-side .side-top {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.admin-side .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-side .brand img {
+    flex: 0 0 auto;
+    width: 80px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.admin-side .brand span {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-placeholder);
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 32px;
+}
+
+.admin-nav a {
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-strong);
+    text-decoration: none;
+    transition: background-color .15s ease;
+}
+
+@media (hover: hover) {
+    .admin-nav a:hover {
+        background: var(--bg-soft);
+    }
+}
+
+.admin-nav a.is-active {
+    background: var(--admin-active-bg);
+    color: var(--brand);
+    font-weight: 700;
+}
+
+.admin-side .me {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 4px;
+    /* 메뉴가 짧아도 바닥에 붙는다 */
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.admin-side .me strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.admin-side .me button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: left;
+    cursor: pointer;
+}
+
+.admin-side .me button:hover {
+    color: var(--brand);
+}
+
+/* 이름 아래 한 줄에 PIN 변경 / 로그아웃 */
+.admin-side .me-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-side .me-actions a {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.admin-side .me-actions a:hover {
+    color: var(--brand);
+}
+
+/* PIN 변경 · 로그아웃 사이 구분점 */
+.admin-side .me-actions form::before {
+    content: "·";
+    margin-right: 8px;
+    color: var(--border);
+}
+
+.admin-side .me-actions form {
+    display: flex;
+    align-items: center;
+}
+
+/*
+ * 직원 수정 모달 하단.
+ * 위: 삭제 불가 사유 한 줄 / 아래: 삭제(왼쪽) · 취소·저장(오른쪽)
+ * 사유를 버튼 옆에 두면 긴 문장이 버튼을 밀어 글자가 세로로 접힌다.
+ */
+.modal-foot.with-delete {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+}
+
+.modal-foot .foot-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-foot .foot-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* 삭제 버튼이 없어도 오른쪽에 붙는다 */
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.btn-danger-text {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--error);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.btn-danger-text:disabled {
+    color: var(--text-placeholder);
+    cursor: default;
+}
+
+.delete-reason {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-placeholder);
+}
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--error);
+    border-radius: var(--radius);
+    background: var(--error);
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* PIN 변경 화면의 입력 검증 문구 */
+.pin-msg:empty {
+    display: none;
+}
+
+.pin-msg {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--error);
+}
+
+/* ── 본문 ──────────────────────────────────────────────── */
+
+.admin-main {
+    flex: 1;
+    min-width: 0;
+    /* 사이드바가 fixed 라 흐름에서 빠져 있다 */
+    margin-left: var(--admin-sidebar);
+    padding: var(--admin-gutter);
+}
+
+.admin-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.admin-head h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.admin-head .actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ── 헤더 버튼 ─────────────────────────────────────────── */
+
+.btn-line,
+.btn-solid {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+.btn-line {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    color: var(--text-strong);
+}
+
+@media (hover: hover) {
+    .btn-line:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+    }
+}
+
+.btn-solid {
+    background: var(--brand);
+    border: 1px solid var(--brand);
+    color: var(--text-on-primary);
+}
+
+@media (hover: hover) {
+    .btn-solid:hover {
+        background: var(--brand-hover);
+        border-color: var(--brand-hover);
+    }
+}
+
+.btn-solid:disabled {
+    background: var(--border);
+    border-color: var(--border);
+    color: var(--text-placeholder);
+    cursor: default;
+}
+
+.btn-solid:active {
+    background: var(--brand-pressed);
+}
+
+/* ── 요약 카드 ─────────────────────────────────────────── */
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.summary-card {
+    padding: 20px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.summary-card .label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.summary-card .value {
+    margin-top: 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+/* ── 1024~1279: 사이드바 200px, 요약 카드 2×2 ──────────── */
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+    .admin-side {
+        width: var(--admin-sidebar-narrow);
+    }
+
+    .admin-main {
+        margin-left: var(--admin-sidebar-narrow);
+    }
+
+    .summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ── 툴바 (검색 / 부서 / 상태) ─────────────────────────── */
+
+.admin-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.admin-toolbar .filters {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.field-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 220px;
+    padding: 8px 12px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.field-search:focus-within {
+    border-color: var(--brand);
+}
+
+.field-search img {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+}
+
+.field-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text-strong);
+}
+
+.field-search input:focus {
+    outline: none;
+}
+
+.field-search input::placeholder {
+    color: var(--text-placeholder);
+}
+
+.field-select {
+    width: 160px;
+    height: 35px;
+    padding: 0 12px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text-strong);
+    cursor: pointer;
+}
+
+.field-select:focus {
+    outline: none;
+    border-color: var(--brand);
+}
+
+/* 세그먼트 (재직 / 퇴사 / 전체) */
+
+.segmented {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--border-soft);
+    border-radius: var(--radius);
+}
+
+.segmented a {
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.segmented a.is-active {
+    background: var(--bg-base);
+    color: var(--text-strong);
+    font-weight: 700;
+}
+
+/* ── 결과 수 ───────────────────────────────────────────── */
+
+.result-count {
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* ── 목록 테이블 ───────────────────────────────────────── */
+
+.admin-table {
+    margin-top: 8px;
+}
+
+.admin-table .thead,
+.admin-table .row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.admin-table .thead {
+    padding: 0 16px 10px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* 정렬 가능한 헤더. 글자 크기·색은 나머지 헤더와 같게 두고 커서만 바꾼다 */
+.sort-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.sort-link.is-sorted {
+    color: var(--text-strong);
+    font-weight: 700;
+}
+
+@media (hover: hover) {
+    .sort-link:hover {
+        color: var(--brand);
+    }
+}
+
+.sort-arrow {
+    font-size: 9px;
+    line-height: 1;
+    color: var(--text-placeholder);
+}
+
+.admin-table .rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-table .row {
+    padding: 14px 16px;
+    background: #F7FCFC;
+    border-radius: var(--radius);
+}
+
+.admin-table .col {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-table .col-actions {
+    flex: 0 0 80px;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.admin-table .name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.admin-table .muted {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.dept-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    background: #D7F0F2;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #005157;
+}
+
+/*
+ * 이름 옆 관리자 표시. 부서 배지(민트)와 구분되게 회색 계열로 둔다.
+ * 행 배경은 hover 와 퇴사자 흐림이 이미 쓰고 있어 건드리지 않는다.
+ */
+.role-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    vertical-align: middle;
+}
+
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+.icon-btn img {
+    width: 14px;
+    height: 14px;
+}
+
+@media (hover: hover) {
+    .icon-btn:hover {
+        background: var(--brand-soft);
+        border-color: var(--brand);
+    }
+}
+
+/* 퇴사자 행은 흐리게 */
+/* 관리자 행. 배지와 함께 쓰는 보조 표시라 아주 옅게만 둔다 */
+.admin-table .row.is-admin {
+    background: var(--brand-soft);
+}
+
+/*
+ * 퇴사가 더 중요한 상태라 관리자 표시를 덮는다.
+ * 규칙 순서에 흔들리지 않게 두 클래스를 함께 적어 특정도로 이겨 둔다.
+ */
+.admin-table .row.is-resigned,
+.admin-table .row.is-resigned.is-admin {
+    background: var(--bg-soft);
+}
+
+.admin-table .row.is-resigned .name {
+    color: var(--text-secondary);
+}
+
+/* ── 페이지네이션 ──────────────────────────────────────── */
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.pagination a,
+.pagination span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.pagination a:hover {
+    background: var(--border-soft);
+}
+
+.pagination .is-current {
+    background: var(--brand);
+    color: var(--text-on-primary);
+    font-weight: 700;
+}
+
+.pagination .is-disabled {
+    opacity: .35;
+    pointer-events: none;
+}
+
+/* ── 빈 상태 ───────────────────────────────────────────── */
+
+.admin-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 120px 24px;
+    text-align: center;
+}
+
+.admin-empty img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+}
+
+.admin-empty p {
+    font-size: 16px;
+    font-weight: 500;
+    color: #374151;
+}
+
+/* ── 폼 관리 목록 ───────────────────────── */
+
+.summary-cards-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.form-table .target,
+.form-table .due,
+.form-table .rate {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-table .target {
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* 남은 기간 배지. 마감·작성 중은 회색, 마감 임박만 강조한다 */
+.day-badge {
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    background: var(--border-soft);
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.day-badge.is-urgent {
+    background: var(--brand-soft);
+    color: var(--brand);
+    font-weight: 700;
+}
+
+.form-table .rate .count {
+    flex: 0 0 auto;
+    min-width: 62px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-strong);
+}
+
+.form-table .rate .track {
+    flex: 0 0 100px;
+    height: 6px;
+    background: var(--border-soft);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.form-table .rate .fill {
+    display: block;
+    height: 100%;
+    background: var(--brand);
+    border-radius: 3px;
+}
+
+/* 마감된 폼은 흔리게 */
+.form-table .row.is-closed {
+    background: var(--bg-soft);
+}
+
+.form-table .row.is-closed .name {
+    color: var(--text-secondary);
+}
+
+/* ── 관리자 모달 ───────────────────────────────────────── */
+
+dialog.admin-modal {
+    width: 480px;
+    max-width: calc(100vw - 48px);
+    padding: 24px;
+    border-radius: 12px;
+    text-align: left;
+}
+
+dialog.admin-modal.wide {
+    width: 640px;
+}
+
+.modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.modal-head h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.modal-close-x {
+    padding: 4px;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--text-placeholder);
+    cursor: pointer;
+}
+
+.modal-close-x:hover {
+    color: var(--text-strong);
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 20px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-row>label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.form-row input,
+.form-row select {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text-strong);
+}
+
+.form-row input:focus,
+.form-row select:focus {
+    outline: none;
+    border-color: var(--brand);
+}
+
+.form-row input:read-only {
+    background: var(--bg-soft);
+    color: var(--text-secondary);
+}
+
+.form-row .hint {
+    font-size: 12px;
+    color: var(--text-placeholder);
+}
+
+.modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.modal-foot button,
+.modal-foot a {
+    height: 38px;
+    padding: 0 18px;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-ghost {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    color: var(--text-strong);
+}
+
+.btn-danger {
+    background: #EF4444;
+    border: 1px solid #EF4444;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #DC2626;
+    border-color: #DC2626;
+}
+
+
+.confirm-text {
+    margin-top: 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.confirm-sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* ── 엑셀 마법사 ───────────────────────────────────────── */
+
+.wizard-steps {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-placeholder);
+}
+
+.wizard-steps .step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.wizard-steps .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--bg-base);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.wizard-steps .step.is-active .num {
+    background: var(--brand);
+}
+
+.wizard-steps .step.is-active {
+    color: var(--brand);
+    font-weight: 700;
+}
+
+.wizard-steps .bar {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.stat-box {
+    padding: 14px 16px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.stat-box .label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.stat-box .value {
+    margin-top: 4px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.error-title {
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #EF4444;
+}
+
+.error-table {
+    margin-top: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-size: 13px;
+}
+
+.error-table .r {
+    display: flex;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.error-table .r:last-child {
+    border-bottom: 0;
+}
+
+.error-table .r.head {
+    background: var(--bg-soft);
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.error-table .c-no {
+    flex: 0 0 64px;
+}
+
+.error-table .c-emp {
+    flex: 0 0 110px;
+}
+
+.error-table .c-why {
+    flex: 1;
+    min-width: 0;
+}
+
+.error-table .r:not(.head) .c-why {
+    color: #EF4444;
+}
+
+
+
+
+
+
+/* ── 토스트 ────────────────────────────────────────────── */
+
+.toast {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.toast.ok {
+    background: var(--brand-soft);
+    color: var(--brand-pressed);
+}
+
+.toast.err {
+    background: var(--error-bg);
+    color: var(--error);
+}
+
+/* ── 폼 편집 ───────────────────────────────────────────── */
+
+/* display 를 지정한 요소는 hidden 속성만으로 안 숨어서 한 번 못박아 둔다 */
+[hidden] {
+    display: none !important;
+}
+
+.edit-main {
+    padding: 0;
+}
+
+.edit-bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 65px;
+    padding: 0 var(--admin-gutter);
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border);
+}
+
+.edit-bar .crumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: 15px;
+}
+
+.edit-bar .crumb a {
+    color: var(--brand);
+    text-decoration: none;
+}
+
+.edit-bar .crumb span {
+    color: var(--text-placeholder);
+}
+
+.edit-bar .crumb strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.edit-bar .actions {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 8px;
+}
+
+.lock-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px var(--admin-gutter);
+    background: var(--warn-bg);
+    border-bottom: 1px solid var(--warn-border);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--warn-text);
+}
+
+.lock-banner img {
+    width: 16px;
+    height: 16px;
+}
+
+.lock-banner.is-error {
+    background: var(--error-bg);
+    border-bottom-color: var(--error);
+    color: var(--error);
+}
+
+.edit-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px var(--admin-gutter) 80px;
+}
+
+.edit-card,
+.q-card {
+    padding: 24px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+/* 기본 정보 */
+
+.edit-card .form-row+.form-row {
+    margin-top: 20px;
+}
+
+.edit-card textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.edit-card textarea:focus,
+.edit-card input:focus {
+    outline: none;
+    border-color: var(--brand);
+}
+
+.target-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.target-key {
+    flex: 0 0 32px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.mini-seg {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--border-soft);
+    border-radius: var(--radius);
+}
+
+.mini-seg button {
+    padding: 5px 14px;
+    background: none;
+    border: 0;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.mini-seg button.is-active {
+    background: var(--bg-base);
+    color: var(--text-strong);
+    font-weight: 700;
+}
+
+.mini-seg button:disabled {
+    cursor: default;
+}
+
+.dept-picker {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: var(--bg-screen);
+    border-radius: var(--radius);
+}
+
+.dept-picker .chips {
+    display: contents;
+}
+
+.dept-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px 3px 10px;
+    background: #D7F0F2;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #005157;
+}
+
+.chip-x,
+.choice-del,
+.tile-del {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 9px;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.chip-x:hover,
+.choice-del:hover {
+    background: rgba(0, 0, 0, .06);
+    color: var(--text-strong);
+}
+
+/* .form-row select 보다 구체적으로 잡아야 기본 입력칸 모양을 벗을 수 있다 */
+.dept-picker .dept-add {
+    width: auto;
+    height: auto;
+    padding: 4px 6px;
+    appearance: none;
+    background: none;
+    border: 0;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--brand);
+    cursor: pointer;
+}
+
+.due-line {
+    display: flex;
+    gap: 8px;
+}
+
+.due-line input {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+/* 질문 카드 */
+
+.q-card {
+    position: relative;
+}
+
+/* 편집기가 모르는 타입. 어느 질문이 문제인지 보이게 한다 */
+.q-card.is-unsupported {
+    border-color: var(--error);
+    background: var(--error-bg);
+}
+
+.q-card.is-dragging,
+.choice.is-dragging {
+    opacity: .4;
+}
+
+.q-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.q-no {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.grip {
+    flex: 0 0 auto;
+    width: 12px;
+    height: 14px;
+    background-image: radial-gradient(circle, var(--text-placeholder) 1.5px, transparent 1.6px);
+    background-size: 5px 5px;
+    cursor: grab;
+}
+
+.grip:active {
+    cursor: grabbing;
+}
+
+.q-type,
+.q-max input,
+.date-range input {
+    padding: 7px 10px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 13px;
+    color: var(--text-strong);
+}
+
+.q-type {
+    flex: 0 0 auto;
+}
+
+.q-title {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 14px;
+}
+
+.q-title:focus,
+.q-type:focus,
+.choice input:focus,
+.tile input:focus {
+    outline: none;
+    border-color: var(--brand);
+}
+
+.q-hint {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-placeholder);
+}
+
+.q-key {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.q-key .opt {
+    font-weight: 400;
+    color: var(--text-placeholder);
+}
+
+/* 선택지 */
+
+.choice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.choice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.choice .bullet {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--text-placeholder);
+    border-radius: 50%;
+}
+
+.is-multi .choice .bullet {
+    border-radius: 3px;
+}
+
+.choice input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 14px;
+}
+
+.link-add {
+    margin-top: 12px;
+    padding: 0;
+    background: none;
+    border: 0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--brand);
+    cursor: pointer;
+}
+
+.q-max {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft);
+}
+
+.q-max input {
+    width: 110px;
+}
+
+/* 날짜 범위 */
+
+.date-range {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.date-range span {
+    color: var(--text-placeholder);
+}
+
+[data-part="date"] {
+    margin-top: 16px;
+}
+
+[data-part="date"] .q-hint {
+    margin-top: 8px;
+}
+
+/* 이미지 선택지 */
+
+[data-part="images"] {
+    margin-top: 16px;
+}
+
+.image-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.tile {
+    position: relative;
+    width: 136px;
+}
+
+.tile img {
+    display: block;
+    width: 136px;
+    height: 96px;
+    object-fit: cover;
+    background: var(--bg-screen);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.tile input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: inherit;
+    font-size: 12px;
+}
+
+.tile-del {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    z-index: 1;
+    width: 20px;
+    height: 20px;
+    background: var(--text-secondary);
+    border-radius: 10px;
+    color: var(--text-on-primary);
+}
+
+.tile-del:hover {
+    background: var(--text-strong);
+}
+
+.tile-add {
+    width: 136px;
+    height: 96px;
+    background: var(--bg-screen);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.tile-add:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+}
+
+/* 카드 하단 */
+
+.q-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft);
+}
+
+.switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.switch .track {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    background: #D1D5DB;
+    border-radius: 10px;
+    transition: background-color .15s ease;
+}
+
+.switch .track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: var(--bg-base);
+    border-radius: 8px;
+    transition: transform .15s ease;
+}
+
+.switch input:checked+.track {
+    background: var(--brand);
+}
+
+.switch input:checked+.track::after {
+    transform: translateX(16px);
+}
+
+.q-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.add-question {
+    padding: 18px;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.add-question:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+}
+
+/* 잠금 상태에서는 손댈 수 없는 곳을 눈으로도 구분해 준다 */
+.edit-body :disabled {
+    background: var(--bg-screen);
+    color: var(--text-secondary);
+    cursor: default;
+}
+
+.edit-body #f-endDate,
+.edit-body #f-endTime {
+    border-color: var(--brand);
+}
+
+/* ── 직원 화면으로 돌아가는 링크 ────────────────────────── */
+
+.admin-side .me .to-employee {
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--brand);
+    text-decoration: none;
+}
+
+@media (hover: hover) {
+    .admin-side .me .to-employee:hover {
+        color: var(--brand-link-hover);
+        text-decoration: underline;
+    }
+}
+
+/* 좁은 화면 안내의 캐릭터 */
+.admin-too-narrow img {
+    width: 200px;
+    height: 200px;
+    margin-bottom: 24px;
+    object-fit: contain;
+}
+
+/* ── 응답 현황 ─────────────────────────────────────────── */
+
+.resp-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 40px;
+}
+
+/* 폼 선택 드롭다운 */
+
+.form-picker {
+    position: relative;
+}
+
+.picker-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    background: none;
+    border: 0;
+    font: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-strong);
+    cursor: pointer;
+}
+
+.picker-btn .caret {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+@media (hover: hover) {
+    .picker-btn:hover .caret {
+        color: var(--brand);
+    }
+}
+
+.picker-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 20;
+    width: 320px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding: 8px 0;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, .1);
+}
+
+.picker-menu .group {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-placeholder);
+}
+
+.picker-menu a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: var(--text-strong);
+    text-decoration: none;
+}
+
+.picker-menu a .rate {
+    flex: 0 0 auto;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+@media (hover: hover) {
+    .picker-menu a:hover {
+        background: var(--bg-screen);
+    }
+}
+
+.picker-menu a.is-current {
+    background: var(--brand-soft);
+    font-weight: 700;
+    color: var(--brand);
+}
+
+.picker-menu a.is-current .rate {
+    color: var(--brand);
+}
+
+.picker-menu .divider {
+    margin: 8px 16px;
+    border-top: 1px solid var(--border-soft);
+}
+
+/* 폼 정보 한 줄 */
+
+.resp-info {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.resp-info .dot {
+    color: var(--text-placeholder);
+}
+
+/* 탭 */
+
+.resp-tabs {
+    display: flex;
+    gap: 24px;
+    margin-top: 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.resp-tabs a {
+    padding: 12px 0;
+    border-bottom: 2px solid transparent;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.resp-tabs a.is-active {
+    border-bottom-color: var(--brand);
+    font-weight: 700;
+    color: var(--brand);
+}
+
+/* 목록 */
+
+.resp-table .submitted {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edited-tag {
+    padding: 2px 7px;
+    background: var(--border-soft);
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* 아직 안 낸 사람은 흐리게 */
+.resp-table .row.is-pending {
+    background: var(--bg-soft);
+}
+
+.resp-table .row.is-pending .name {
+    color: var(--text-secondary);
+}
+
+/* 통계 */
+
+.stats {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.stat-card {
+    padding: 20px 24px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.stat-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-head strong {
+    flex: 0 0 auto;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--brand);
+}
+
+.stat-head .q {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-strong);
+}
+
+.stat-head .type {
+    flex: 0 0 auto;
+    font-size: 12px;
+    color: var(--text-placeholder);
+}
+
+.stat-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.stat-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-bar .label {
+    flex: 0 0 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--text-strong);
+}
+
+.stat-bar .track {
+    flex: 1;
+    min-width: 0;
+    height: 20px;
+    background: var(--border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.stat-bar .fill {
+    display: block;
+    height: 100%;
+    min-width: 2px;
+    background: var(--brand);
+    border-radius: 10px;
+}
+
+.stat-bar .num {
+    flex: 0 0 90px;
+    text-align: right;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.stat-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.stat-image {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100px;
+    text-align: center;
+}
+
+.stat-image img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    background: var(--bg-screen);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.stat-image .cap {
+    font-size: 13px;
+    color: var(--text-strong);
+}
+
+.stat-image .num {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.stat-textual {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: var(--bg-screen);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.stat-textual a {
+    flex: 0 0 auto;
+    font-weight: 500;
+    color: var(--brand);
+    text-decoration: none;
+}
+
+.stat-textual a:hover {
+    text-decoration: underline;
+}
+
+/* 개별 응답 모달 */
+
+.detail-meta {
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 0;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.detail-list dt {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.detail-list dd {
+    margin: 4px 0 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-strong);
+    overflow-wrap: anywhere;
+}
+
+/* ── 질문 카드 접기 / 펼치기 ───────────────────────────── */
+
+/* 펼친 카드만 테두리를 강조해 지금 고치는 질문이 어디인지 보이게 한다 */
+.q-card.is-open {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 1px var(--brand);
+}
+
+.q-card:not(.is-open) {
+    padding: 16px 24px;
+    cursor: pointer;
+}
+
+.q-card:not(.is-open) .q-head {
+    margin-bottom: 0;
+}
+
+/* 접히면 편집 영역을 모두 숨긴다. 값은 그대로 남아 저장에 함께 실린다 */
+.q-card:not(.is-open) .q-title,
+.q-card:not(.is-open) .q-hint,
+.q-card:not(.is-open) .q-foot,
+.q-card:not(.is-open) .q-type,
+.q-card:not(.is-open) [data-part] {
+    display: none;
+}
+
+.q-card.is-open .q-summary,
+.q-card.is-open .q-meta {
+    display: none;
+}
+
+.q-card .q-no {
+    flex: 0 0 auto;
+}
+
+.q-summary {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    color: var(--text-strong);
+}
+
+.q-meta {
+    flex: 0 0 auto;
+    font-size: 12px;
+    color: var(--text-placeholder);
+}
+
+/* 펼친 카드에서는 제목이 자리를 차지하지 않도록 번호 뒤를 비운다 */
+.q-card.is-open .q-no {
+    flex: 1;
+}
+
+/* ── 설정 ──────────────────────────────────────────────── */
+
+.settings {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.set-card {
+    padding: 24px 32px 28px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.set-card h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.set-card .sub {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-placeholder);
+}
+
+.set-card textarea {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.set-card textarea:focus,
+.set-card input:focus {
+    outline: none;
+    border-color: var(--brand);
+}
+
+.set-foot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* 입력 한 줄 */
+
+.set-row {
+    margin-top: 16px;
+}
+
+.set-row label,
+.set-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.set-row input {
+    width: 100%;
+    height: 40px;
+    padding: 0 16px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 14px;
+}
+
+/* 담당자 목록 */
+
+.person-block {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-soft);
+}
+
+.person-head,
+.person-row,
+.dept-head,
+.dept-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.person-head,
+.dept-head {
+    padding: 0 2px 8px;
+    font-size: 12px;
+    color: var(--text-placeholder);
+}
+
+/* 부서 목록은 구분선 없이 부제 바로 아래 오므로 여백을 따로 준다 */
+.dept-head {
+    margin-top: 24px;
+}
+
+.person-row+.person-row,
+.dept-row+.dept-row {
+    margin-top: 8px;
+}
+
+.person-row input,
+.dept-row input {
+    height: 40px;
+    min-width: 0;
+    padding: 0 12px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 14px;
+}
+
+/* 시안 열 너비: 이름·내선은 좁게, 역할·위치는 넓게 */
+.c-name {
+    flex: 0 0 120px;
+}
+
+.c-role {
+    flex: 1 1 0;
+}
+
+.c-loc {
+    flex: 1 1 0;
+}
+
+.c-ext {
+    flex: 0 0 120px;
+}
+
+.c-del {
+    flex: 0 0 24px;
+}
+
+.d-name {
+    flex: 1 1 0;
+}
+
+.d-count {
+    flex: 0 0 90px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.d-del {
+    flex: 0 0 24px;
+}
+
+.dept-head .d-count {
+    font-size: 12px;
+    color: var(--text-placeholder);
+}
+
+.row-x {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 12px;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.row-x:hover:not(:disabled) {
+    background: var(--border-soft);
+    color: var(--text-strong);
+}
+
+/* 지울 수 없는 줄은 눌리지 않는 것이 보이게 흐려 둔다 */
+.row-x:disabled {
+    color: var(--border);
+    cursor: default;
+}
+
+.dashed-add {
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.dashed-add:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+}
+
+/* ── 대시보드 ──────────────────────────────────────────── */
+
+.admin-head .today {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* 시안 비율 6:4 */
+.dash-grid {
+    display: grid;
+    grid-template-columns: 6fr 4fr;
+    gap: 16px;
+    align-items: start;
+    margin-top: 16px;
+}
+
+.dash-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.dash-card {
+    padding: 20px 24px 24px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.dash-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.dash-head h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.dash-head a {
+    font-size: 13px;
+    color: var(--brand);
+    text-decoration: none;
+}
+
+.dash-head a:hover {
+    text-decoration: underline;
+}
+
+.dash-empty {
+    padding: 24px 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-placeholder);
+}
+
+.dash-card ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* 진행 중인 폼 */
+
+.dash-forms li+li {
+    margin-top: 8px;
+}
+
+.dash-forms a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    margin: 0 -12px;
+    border-radius: var(--radius);
+    text-decoration: none;
+}
+
+@media (hover: hover) {
+    .dash-forms a:hover {
+        background: var(--bg-screen);
+    }
+}
+
+.dash-forms .title {
+    flex: 0 0 auto;
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-strong);
+}
+
+/* 막대는 폼·부서 목록이 같은 모양을 쓴다 */
+.dash-forms .track,
+.dash-depts .track {
+    flex: 1;
+    min-width: 0;
+    height: 12px;
+    background: var(--border-soft);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.dash-forms .fill,
+.dash-depts .fill {
+    display: block;
+    height: 100%;
+    background: var(--brand);
+    border-radius: 6px;
+}
+
+.dash-forms .num,
+.dash-depts .num {
+    flex: 0 0 auto;
+    min-width: 96px;
+    text-align: right;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* 부서별 응답률 */
+
+.dash-depts li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dash-depts li+li {
+    margin-top: 10px;
+}
+
+.dash-depts .dept-badge {
+    flex: 0 0 84px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* 최근 응답 */
+
+.dash-recent li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+.dash-recent li+li {
+    border-top: 1px solid var(--border-soft);
+}
+
+.dash-recent .who {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.dash-recent .name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.dash-recent .form {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    color: var(--text-placeholder);
+}
+
+.dash-recent .at,
+.dash-newcomers .at {
+    flex: 0 0 auto;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* 이번 달 입사자 */
+
+.dash-newcomers li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 0;
+}
+
+.dash-newcomers li+li {
+    border-top: 1px solid var(--border-soft);
+}
+
+.dash-newcomers .name {
+    font-size: 14px;
+    color: var(--text-strong);
+}
+
+.dash-newcomers .at {
+    margin-left: auto;
+}
+
+/* 좁은 폭에서는 한 줄로 쌓는다 */
+@media (min-width: 1024px) and (max-width: 1279px) {
+    .dash-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── 엑셀 업로드 모달 (시안 89:37 계열) ────────────────── */
+
+.drop-zone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 160px;
+    padding: 16px;
+    background: var(--bg-screen);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color .12s ease, background-color .12s ease;
+    margin-top: 12px;
+}
+
+.drop-zone:hover,
+.drop-zone.is-over {
+    background: var(--brand-soft);
+    border-color: var(--brand);
+    color: var(--brand);
+}
+
+.drop-zone.has-file {
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.text-link {
+    display: inline-block;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--brand);
+    text-decoration: none;
+}
+
+.text-link:hover {
+    text-decoration: underline;
+}
+
+.info-box {
+    margin-top: 20px;
+    padding: 12px;
+    background: var(--bg-screen);
+    border-radius: var(--radius);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+/* 단계 표시: 지나온 단계는 체크 */
+.wizard-steps .step.is-done .num {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--text-on-primary);
+}
+
+.wizard-steps .step.is-done {
+    color: var(--text-secondary);
+}
+
+/* 신규 부서 pill */
+
+.new-depts {
+    margin-top: 20px;
+}
+
+.new-depts .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* 결과 배너 */
+
+.banner {
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.banner.ok {
+    background: var(--brand-soft);
+    color: #00707A;
+}
+
+.banner.warn {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    color: var(--warn-text);
+}
+
+/* 완료 단계 */
+
+.done-block {
+    padding: 24px 0 8px;
+    text-align: center;
+}
+
+.done-block .done-msg {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.done-block .done-sub {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.modal-foot.centered {
+    justify-content: center;
+}
+
+/* ── 시안에 맞춘 모달 세부 ─────────────────────────────── */
+
+/* 역할 토글은 입력칸 폭을 꽉 채운다 (시안 89:305) */
+.mini-seg.wide-seg {
+    display: flex;
+    width: 100%;
+}
+
+.mini-seg.wide-seg button {
+    flex: 1;
+    padding: 7px 0;
+}
+
+/* 응답 상세 (시안 100:238) */
+dialog.admin-modal.detail {
+    width: 560px;
+}
+
+.detail-list dt {
+    font-weight: 500;
+}
+
+/* 주소는 줄을 나눠 넣으므로 줄바꿈을 살린다 */
+.detail-list dd {
+    white-space: pre-line;
+}
+
+/* ── 엑셀 다운로드 모달 (시안 100:258) ─────────────────── */
+
+dialog.admin-modal.download {
+    width: 480px;
+}
+
+.check-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.check-list label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text-strong);
+    cursor: pointer;
+}
+
+.check-list input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--brand);
+}
+
+.toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-soft);
+    font-size: 14px;
+    color: var(--text-strong);
+}
+
+/* 응답 상세는 시안처럼 닫기 버튼이 가운데 */
+dialog.admin-modal.detail .modal-foot {
+    justify-content: center;
+}

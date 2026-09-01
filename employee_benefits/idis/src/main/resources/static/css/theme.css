@@ -1,42 +1,51 @@
 /* ============================================================
    IDIS 복리후생 - 공통 테마
-   피그마 시안(idis-login-variant)의 토큰/컴포넌트를 기준으로 한다.
+   Figma "Dubu Design System" 토큰을 그대로 옮긴다.
    페이지별 CSS 는 이 파일 다음에 로드한다.
    ============================================================ */
 
 :root {
     /* 브랜드 */
-    --main: #009CA6;
-    --main-dark: #00838C;
-    --mint: #E9F6F7;
+    --brand: #009CA6;
+    --brand-hover: #00909A;
+    --brand-pressed: #008892;
+    --brand-soft: #E6F6F6;
+    --brand-soft-hover: #EDFAFA;
+    --brand-link-hover: #00858F;
+
+    /* 배경 */
+    --bg-base: #FFFFFF;
+    --bg-soft: #F9FAFB;
+    --bg-screen: #F8FAFA;
 
     /* 텍스트 */
-    --ink: #111827;
-    --title: #1F2937;
-    --gray-1: #6B7280;
-    --gray-2: #9CA3AF;
+    --text-strong: #111827;
+    --text-heading: #1F2937;
+    --text-secondary: #6B7280;
+    --text-placeholder: #9CA3AF;
+    --text-on-primary: #FFFFFF;
 
-    /* 선 / 면 */
-    --line: #E5E7EB;
-    --line-soft: #F3F4F6;
-    --surface: #F9FAFB;
-    --surface-2: #F2F6F7;
-    --head-bg: #F1F8FA;
+    /* 선 */
+    --border: #E5E7EB;
+    --border-soft: #F3F4F6;
 
     /* 상태 */
+    --required: #EF4444;
+    --warn-bg: #FFFBEB;
+    --warn-border: #FDE68A;
+    --warn-text: #D97706;
+    --dday: #F97316;
     --error: #E0524E;
     --error-bg: #FDF0EF;
 
     /* 형태 */
-    --r-control: 8px;
-    --r-card: 12px;
-    --r-modal: 16px;
-    --r-shell: 20px;
-
+    --radius: 8px;
+    --radius-pill: 20px;
     --h-btn: 51px;
     --h-input: 48px;
 
-    --shell: 520px;
+    /* 데스크탑 중앙 카드 폭 (시안 638px) */
+    --card: 640px;
 }
 
 * {
@@ -45,258 +54,134 @@
 }
 
 body {
-    font-family: "Pretendard Variable", sans-serif;
-    background: #fff;
-    color: var(--ink);
+    font-family: "Pretendard Variable", Pretendard, "Noto Sans KR", sans-serif;
+    background: var(--bg-base);
+    color: var(--text-strong);
+    -webkit-text-size-adjust: 100%;
 }
 
-/* 내부 화면(.app)은 민트 헤더 + 흰 본문이 세로로 꽉 차는 구조 */
+/* 화면 전체를 세로로 채워 하단 배너가 바닥에 붙게 한다 */
 body.app {
     display: flex;
     flex-direction: column;
     min-height: 100dvh;
 }
 
-/* ── 상단 바 ───────────────────────────────────────────── */
+/* ── 앱 헤더 (뒤로가기 + 화면 제목) ────────────────────── */
 
-/* 로그인 화면과 같은 민트 패턴을 헤더 밴드로 재사용한다.
-   캐릭터는 로그인/완료/빈 화면에서만 쓰고 내부 화면에서는 반복하지 않는다. */
-/* 패턴은 상단 바 뒤에만 깔고, 글자가 놓이는 아래쪽은 평평한 바탕으로 덮는다.
-   패턴 이미지의 바탕색과 같은 #F1F8FA 로 페이드해서 경계가 보이지 않는다. */
-.head {
-    background:
-        linear-gradient(to bottom, rgba(241, 248, 250, 0) 30px, var(--head-bg) 78px),
-        url("/image/login-header-bg.png") center top / cover no-repeat;
-    background-color: var(--head-bg);
-    padding-bottom: 28px;
-}
-
-.top {
+.app-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    max-width: 430px;
-    margin: 0 auto;
-    padding: 18px 24px;
-    background: transparent;
+    gap: 12px;
+    height: 56px;
+    padding: 0 20px;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border);
 }
 
-.head-title {
-    max-width: 430px;
-    margin: 0 auto;
-    padding: 4px 24px 0;
-}
-
-/* 제목 없이 상단 바만 있는 화면(완료 등)은 밴드를 얇게.
-   .page 의 -20px 만큼 상쇄해 흰 영역이 상단 바를 파고들지 않게 한다. */
-.head:not(:has(.head-title)) {
-    padding-bottom: 20px;
-}
-
-.top .logo {
-    height: 26px;
-    width: auto;
-}
-
-.top-actions {
+.app-header .back {
     display: flex;
     align-items: center;
-    gap: 14px;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    /* 터치 영역 44px 확보 */
+    margin: -10px 0 -10px -10px;
+    padding: 10px;
+    box-sizing: content-box;
 }
 
-.nav-link,
-.back {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--gray-1);
-    text-decoration: none;
+.app-header .back img {
+    width: 16px;
+    height: 16px;
 }
 
-.nav-link {
-    font-size: 13px;
+.app-header h1 {
+    flex: 1;
+    min-width: 0;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text-heading);
 }
 
-.nav-link:active,
-.back:active {
-    color: var(--main);
+.app-header .home-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    /* 터치 영역 44px 확보 */
+    margin: -10px -10px -10px 0;
+    padding: 10px;
+    box-sizing: content-box;
+}
+
+.app-header .home-link img {
+    width: 24px;
+    height: 24px;
 }
 
 .logout-btn {
-    height: 34px;
-    padding: 0 13px;
-    border: 1px solid var(--line);
-    border-radius: var(--r-control);
-    background: #fff;
+    flex: 0 0 auto;
+    padding: 10px 0 10px 10px;
+    border: 0;
+    background: none;
     font-family: inherit;
     font-size: 13px;
-    font-weight: 600;
-    color: var(--gray-1);
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
     cursor: pointer;
 }
 
 .logout-btn:active {
-    border-color: var(--main);
-    color: var(--main);
-}
-
-/* ── 본문 컨테이너 ─────────────────────────────────────── */
-
-.page {
-    position: relative;
-    z-index: 1;
-    flex: 1;
-    max-width: 430px;
-    width: 100%;
-    margin: -20px auto 0;
-    padding: 28px 24px 48px;
-    background: #fff;
-    border-radius: var(--r-shell) var(--r-shell) 0 0;
-}
-
-.greeting {
-    font-size: 15px;
-    color: var(--gray-1);
-}
-
-.greeting strong {
-    color: var(--main);
-}
-
-.title {
-    margin-top: 6px;
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1.3;
-    color: var(--title);
-}
-
-/* 민트 밴드 위에 올라간 첫 카드는 여백을 조금 줄인다 */
-.page > .cards:first-child,
-.page > .title:first-child {
-    margin-top: 0;
-}
-
-/* ── 카드 목록 ─────────────────────────────────────────── */
-
-.cards {
-    list-style: none;
-    padding: 0;
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.card-link {
-    display: block;
-    position: relative;
-    padding: 18px;
-    border: 1px solid var(--line);
-    border-radius: var(--r-card);
-    text-decoration: none;
-    color: inherit;
-}
-
-.card-link:active {
-    border-color: var(--main);
-    background: var(--mint);
-}
-
-.card-title {
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1.4;
-    color: var(--title);
-}
-
-.card-desc {
-    margin-top: 6px;
-    font-size: 13px;
-    color: var(--gray-1);
-    line-height: 1.55;
-}
-
-.card-period {
-    margin-top: 10px;
-    font-size: 12.5px;
-    font-weight: 500;
-    color: var(--gray-2);
-}
-
-.badge {
-    display: inline-block;
-    margin-bottom: 8px;
-    padding: 3px 9px;
-    border-radius: 999px;
-    font-size: 11.5px;
-    font-weight: 600;
-}
-
-.badge.done {
-    background: var(--mint);
-    color: var(--main-dark);
-}
-
-.badge.closed {
-    background: var(--line-soft);
-    color: var(--gray-1);
-}
-
-/* ── 안내 배너 ─────────────────────────────────────────── */
-
-.alert {
-    padding: 12px 14px;
-    border-radius: var(--r-control);
-    background: var(--error-bg);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--error);
-    line-height: 1.5;
-}
-
-.info {
-    padding: 12px 14px;
-    border-radius: var(--r-control);
-    background: var(--mint);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--main-dark);
-    line-height: 1.5;
-}
-
-.info.readonly {
-    background: var(--line-soft);
-    color: var(--gray-1);
+    color: var(--brand);
 }
 
 /* ── 버튼 ──────────────────────────────────────────────── */
 
-.btn-primary,
-.login-btn,
-.submit-btn,
-.modal-close {
+.btn-primary {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: var(--h-btn);
     border: 0;
-    border-radius: var(--r-control);
-    background: var(--main);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 600;
+    border-radius: var(--radius);
+    background: var(--brand);
+    color: var(--text-on-primary);
     font-family: inherit;
-    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
     text-decoration: none;
+    cursor: pointer;
+    filter: drop-shadow(0 6px 8px rgba(0, 156, 166, .2));
 }
 
-.btn-primary:active,
-.login-btn:active,
-.submit-btn:active,
-.modal-close:active {
-    background: var(--main-dark);
+.btn-primary {
+    transition: background-color .15s ease;
+}
+
+/* 터치 기기에서 탭 후 hover 가 눌린 채로 남는 것을 막는다 */
+@media (hover: hover) {
+    .btn-primary:hover:not(:disabled) {
+        background: var(--brand-hover);
+    }
+}
+
+.btn-primary:active:not(:disabled) {
+    background: var(--brand-pressed);
+}
+
+.btn-primary:disabled {
+    background: var(--border);
+    color: var(--text-placeholder);
+    cursor: default;
+    filter: none;
 }
 
 .btn-outline {
@@ -306,54 +191,220 @@ body.app {
     gap: 8px;
     width: 100%;
     height: var(--h-btn);
-    border: 1px solid var(--main);
-    border-radius: var(--r-control);
-    background: #fff;
-    color: var(--main);
-    font-size: 16px;
-    font-weight: 600;
+    border: 1px solid var(--brand);
+    border-radius: var(--radius);
+    background: var(--bg-base);
+    color: var(--brand);
     font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
     cursor: pointer;
-    text-decoration: none;
 }
 
-.btn-outline:active {
-    background: var(--mint);
+.btn-outline {
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
 }
 
-.text-btn {
-    display: block;
-    margin-top: 14px;
-    text-align: center;
+@media (hover: hover) {
+    .btn-outline:hover:not(:disabled) {
+        background: var(--brand-soft-hover);
+    }
+}
+
+.btn-outline:active:not(:disabled) {
+    background: var(--bg-soft);
+}
+
+.btn-outline:disabled {
+    border-color: var(--border);
+    color: var(--text-placeholder);
+    cursor: default;
+}
+
+.btn-outline img {
+    width: 16px;
+    height: 16px;
+}
+
+/* 알약형 링크 버튼 (신청내역 보기 →) */
+.btn-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border: 1px solid var(--brand);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--brand);
+    font-family: inherit;
     font-size: 14px;
-    font-weight: 500;
-    color: var(--gray-2);
+    font-weight: 700;
     text-decoration: none;
+    cursor: pointer;
+}
+
+.btn-pill {
+    transition: background-color .15s ease;
+}
+
+@media (hover: hover) {
+    .btn-pill:hover {
+        background: var(--brand-soft-hover);
+    }
+}
+
+.btn-pill:active {
+    background: var(--bg-soft);
+}
+
+/* ── 텍스트 링크 ───────────────────────────────────────── */
+
+.text-link {
+    color: var(--brand);
+    border-bottom: 1px solid var(--brand);
+    text-decoration: none;
+    transition: color .15s ease, border-color .15s ease;
+}
+
+@media (hover: hover) {
+    .text-link:hover {
+        color: var(--brand-link-hover);
+        border-bottom-color: var(--brand-link-hover);
+    }
+}
+
+/* ── 필터 칩 ───────────────────────────────────────────── */
+
+.chips {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px;
+}
+
+.chip {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--bg-soft);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.chip.is-active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--text-on-primary);
+    font-weight: 700;
+}
+
+/* ── 배지 ──────────────────────────────────────────────── */
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge.is-open {
+    background: var(--brand-soft);
+    color: var(--brand-pressed);
+}
+
+.badge.is-closed {
+    background: var(--border-soft);
+    color: var(--text-secondary);
+}
+
+/* ── 안내 배너 ─────────────────────────────────────────── */
+
+.alert {
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    background: var(--error-bg);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--error);
+}
+
+.info {
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    background: var(--brand-soft);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--brand-pressed);
+}
+
+.info.readonly {
+    background: var(--border-soft);
+    color: var(--text-secondary);
 }
 
 /* ── 빈 화면 ───────────────────────────────────────────── */
 
-.empty {
-    margin-top: 64px;
+.empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 48px 24px;
     text-align: center;
-    color: var(--gray-1);
-    font-size: 14px;
 }
 
-.empty .char-wrap {
-    display: grid;
-    place-items: center;
-    width: 116px;
-    height: 116px;
-    margin: 0 auto 18px;
-    border-radius: 50%;
-    background: var(--mint);
-}
-
-.empty .char {
-    width: 96px;
-    height: 96px;
+.empty-state .mascot {
+    width: 180px;
+    height: 180px;
     object-fit: contain;
+}
+
+.empty-state .texts {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.empty-state h2 {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text-strong);
+}
+
+.empty-state p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+/* ── 수정 모드 배너 ────────────────────────────────────── */
+
+.edit-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--warn-bg);
+    border-bottom: 1px solid var(--warn-border);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--warn-text);
+}
+
+.edit-banner img {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
 }
 
 /* ── 모달 ──────────────────────────────────────────────── */
@@ -363,7 +414,7 @@ dialog {
     margin: auto;
     width: min(340px, calc(100vw - 48px));
     border: 0;
-    border-radius: var(--r-modal);
+    border-radius: 16px;
     padding: 28px 24px 24px;
     text-align: center;
 }
@@ -375,51 +426,149 @@ dialog::backdrop {
 dialog h2 {
     font-size: 18px;
     font-weight: 700;
-    color: var(--title);
+    color: var(--text-heading);
 }
 
 dialog p {
     margin-top: 12px;
     font-size: 14px;
     line-height: 1.6;
-    color: var(--gray-1);
+    color: var(--text-secondary);
 }
 
-.modal-close {
+/* 모달 안에서는 버튼 그림자를 뺀다 */
+dialog .btn-primary {
+    filter: none;
+}
+
+/* 버튼이 하나뿐인 모달(로그인 문의). 두 개짜리는 .modal-actions 가 맡는다 */
+dialog > .btn-primary {
     height: 46px;
     margin-top: 20px;
     font-size: 15px;
 }
 
-/* ── 데스크탑: 가운데 카드 셸 ──────────────────────────── */
+/* 취소 / 확인 두 개를 나란히 두는 모달 */
+dialog.confirm {
+    padding: 24px;
+    text-align: center;
+}
 
-@media (min-width: 600px) {
-    body {
-        background: var(--surface-2);
+dialog.confirm h2 {
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--text-strong);
+}
+
+dialog.confirm p {
+    margin-top: 8px;
+}
+
+/* 두 칸을 정확히 반씩 나눈다. flex: 1 은 취소 버튼의 1.5px 테두리가
+   flex-basis(border-box)에 들어가 2px 어긋나므로 쓰지 않는다 */
+.modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.modal-actions > * {
+    width: auto;
+    min-width: 0;
+    height: 48px;
+    margin-top: 0;
+    font-size: 15px;
+}
+
+.btn-cancel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-base);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+@media (hover: hover) {
+    .btn-cancel:hover {
+        background: var(--bg-soft);
+    }
+}
+
+.btn-cancel:active {
+    background: var(--border-soft);
+}
+
+/* ── 데스크탑: 시안 'PC 웹 (중앙 카드)' 대로 가운데 카드 ── */
+
+@media (min-width: 768px) {
+    /*
+     * 사용자 화면에만 건다. 관리자 콘솔(body.admin)은 전체 폭을 쓰므로
+     * html 을 무조건 flex 로 만들면 사이드바까지 가운데로 몰린다.
+     */
+    html:has(body.app) {
+        display: flex;
+        justify-content: center;
+        /* 내용이 길어 넘칠 때 위쪽이 잘리지 않도록 safe 를 쓴다 */
+        align-items: safe center;
+        min-height: 100dvh;
+        background: var(--bg-soft);
     }
 
     body.app {
-        align-items: center;
-        padding: 40px 16px;
+        flex: none;
+        width: var(--card);
+        max-width: calc(100vw - 48px);
+        /* 모바일에서 화면을 채우던 높이를 풀어 내용만큼만 차지하게 한다 */
+        min-height: 0;
+        margin: 40px 0;
+        /* 시안의 카드 안쪽 여백 47px = 각 화면이 이미 쓰는 24px + 23px */
+        padding: 0 23px;
+        background: var(--bg-base);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 2px 16px rgba(17, 24, 32, .05);
     }
 
-    .head {
-        width: var(--shell);
-        max-width: 100%;
-        border-radius: var(--r-shell) var(--r-shell) 0 0;
-        box-shadow: 0 -2px 24px rgba(17, 24, 32, .06);
+    /* 카드 안에서는 상단바가 화면 맨 위가 아니라 여백을 두고 시작하고, 구분선도 없다 */
+    .app-header {
+        height: auto;
+        padding: 46px 24px 20px;
+        border-bottom: 0;
     }
 
-    .top,
-    .head-title,
-    .page {
-        max-width: var(--shell);
+    /* 홈만 카드가 화면 높이를 채워, 신청내역 버튼이 카드 안쪽 바닥에 붙는다
+       (위아래 margin 40px 씩 제외) */
+    body.home {
+        min-height: calc(100dvh - 80px);
     }
+}
 
-    .page {
-        width: var(--shell);
-        flex: 0 1 auto;
-        border-radius: var(--r-shell);
-        box-shadow: 0 6px 24px rgba(17, 24, 32, .08);
-    }
+/* ── 관리자 화면으로 넘어가는 링크 (ADMIN 에게만 보인다) ── */
+
+.top-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.admin-link {
+    padding: 5px 12px;
+    background: var(--brand-soft);
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brand);
+    text-decoration: none;
+}
+
+.admin-link:active {
+    background: var(--brand-soft-hover);
 }

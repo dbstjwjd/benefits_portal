@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{admin/layout :: head('설정')}"></head>
+
+<body class="admin">
+    <div th:replace="~{admin/layout :: tooNarrow}"></div>
+
+    <div class="admin-shell">
+        <aside th:replace="~{admin/layout :: side('settings', ${admin})}"></aside>
+
+        <main class="admin-main">
+            <div class="admin-head">
+                <h1>설정</h1>
+            </div>
+
+            <p class="toast ok" th:if="${toast}" th:text="${toast}"></p>
+            <p class="toast err" th:if="${error}" th:text="${error}"></p>
+
+            <div class="settings">
+                <!-- 로그인 안내 문구 -->
+                <section class="set-card">
+                    <form th:action="@{/admin/settings/login-notice}" method="post">
+                        <h2>로그인 안내 문구</h2>
+                        <p class="sub">로그인 화면에 표시할 안내 문구를 설정합니다</p>
+
+                        <textarea name="notice" rows="3"
+                            placeholder="예: IDIS 복리후생 시스템입니다.&#10;사내 계정으로 로그인해주세요."
+                            th:text="${loginNotice}"></textarea>
+
+                        <div class="set-foot">
+                            <button class="btn-solid" type="submit">저장</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- 문의 담당자 -->
+                <section class="set-card">
+                    <form id="contactForm" th:action="@{/admin/settings/contact}" method="post">
+                        <h2>문의 담당자</h2>
+                        <p class="sub">설문 하단에 표시되는 문의처 정보를 설정합니다</p>
+
+                        <div class="set-row">
+                            <label for="c-title">모달 제목</label>
+                            <input id="c-title" name="title" maxlength="100"
+                                placeholder="예: 문의하기" th:value="${contactTitle}">
+                        </div>
+                        <div class="set-row">
+                            <label for="c-intro">안내문</label>
+                            <input id="c-intro" name="intro" maxlength="300"
+                                placeholder="예: 아래 담당자에게 문의해주세요" th:value="${contactIntro}">
+                        </div>
+                        <div class="set-row">
+                            <label for="c-foot">하단 주석</label>
+                            <input id="c-foot" name="footnote" maxlength="300"
+                                placeholder="예: 업무 시간(08:30 ~ 17:30) 중에 연락 부탁드립니다." th:value="${contactFootnote}">
+                        </div>
+
+                        <div class="person-block">
+                            <p class="set-label">담당자 목록</p>
+                            <div class="person-head">
+                                <span class="c-name">이름</span>
+                                <span class="c-role">역할</span>
+                                <span class="c-loc">위치</span>
+                                <span class="c-ext">내선번호</span>
+                                <span class="c-del"></span>
+                            </div>
+                            <div id="personList">
+                                <div class="person-row" th:each="p : ${contactPersons}">
+                                    <input class="c-name" th:value="${p.name()}" placeholder="이름">
+                                    <input class="c-role" th:value="${p.role()}" placeholder="역할">
+                                    <input class="c-loc" th:value="${p.location()}" placeholder="위치">
+                                    <input class="c-ext" th:value="${p.extension()}" placeholder="내선">
+                                    <button class="c-del row-x" type="button" data-remove
+                                        aria-label="담당자 삭제">&times;</button>
+                                </div>
+                            </div>
+                            <button class="dashed-add" type="button" id="addPerson">+ 담당자 추가</button>
+                        </div>
+
+                        <div class="set-foot">
+                            <button class="btn-solid" type="submit">저장</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- 부서 -->
+                <section class="set-card">
+                    <h2>부서</h2>
+                    <p class="sub">부서를 관리합니다. 변경 사항은 즉시 반영됩니다</p>
+
+                    <div class="dept-head">
+                        <span class="d-name">부서명</span>
+                        <span class="d-count">소속 인원</span>
+                        <span class="d-del"></span>
+                    </div>
+                    <div id="deptList">
+                        <div class="dept-row" th:each="d : ${departments}" th:attr="data-id=${d.id()}">
+                            <input class="d-name" th:value="${d.name()}" maxlength="50" placeholder="부서명">
+                            <span class="d-count" th:text="${d.memberCount()} + '명'">0명</span>
+                            <button class="d-del row-x" type="button" data-remove aria-label="부서 삭제"
+                                th:disabled="${!d.deletable()}"
+                                th:title="${d.deletable()} ? '삭제' : '소속 인원이 있어 삭제할 수 없습니다'">&times;</button>
+                        </div>
+                    </div>
+                    <button class="dashed-add" type="button" id="addDept">+ 부서 추가</button>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <template id="personTemplate">
+        <div class="person-row">
+            <input class="c-name" placeholder="이름">
+            <input class="c-role" placeholder="역할">
+            <input class="c-loc" placeholder="위치">
+            <input class="c-ext" placeholder="내선">
+            <button class="c-del row-x" type="button" data-remove aria-label="담당자 삭제">&times;</button>
+        </div>
+    </template>
+
+    <template id="deptTemplate">
+        <div class="dept-row">
+            <input class="d-name" maxlength="50" placeholder="부서명">
+            <span class="d-count">0명</span>
+            <button class="d-del row-x" type="button" data-remove aria-label="부서 삭제">&times;</button>
+        </div>
+    </template>
+
+    <script th:src="@{/js/admin-settings.js}" src="/js/admin-settings.js"></script>
+</body>
+
+</html>

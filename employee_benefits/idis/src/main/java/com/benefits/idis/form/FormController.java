@@ -3,7 +3,6 @@ package com.benefits.idis.form;
 import com.benefits.idis.auth.LoginUser;
 import com.benefits.idis.employee.Employee;
 import com.benefits.idis.employee.EmployeeRepository;
-import com.benefits.idis.response.ResponseRepository;
 import com.benefits.idis.response.ResponseService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -22,7 +23,6 @@ import java.util.List;
 public class FormController {
 
     private final FormRepository formRepository;
-    private final ResponseRepository responseRepository;
     private final EmployeeRepository employeeRepository;
     private final ResponseService responseService;
 
@@ -35,12 +35,13 @@ public class FormController {
 
         List<Form> forms = formRepository.findByStatusAndDeletedAtIsNullOrderByEndAtAsc(FormStatus.OPEN).stream()
                 .filter(Form::isOpen)
-                .filter(form -> form.getTarget().includes(employee.getType()))
+                .filter(form -> form.includes(employee))
                 .toList();
 
         model.addAttribute("loginUser", session.getAttribute("loginUser"));
+        // 세션이 아니라 방금 다시 읽은 직원 기준으로 관리자 링크를 노출한다
+        model.addAttribute("isAdmin", employee.getRole() == com.benefits.idis.employee.Role.ADMIN);
         model.addAttribute("forms", forms);
-        model.addAttribute("submittedFormIds", responseRepository.findFormIdsByEmpNo(employee.getEmpNo()));
         return "forms";
     }
 
@@ -55,7 +56,6 @@ public class FormController {
             return "redirect:/login";
         }
 
-        model.addAttribute("loginUser", session.getAttribute("loginUser"));
         model.addAttribute("responses", responseService.findMyResponses(employee.getEmpNo()));
         return "responses";
     }
@@ -66,11 +66,17 @@ public class FormController {
         if (employee == null) {
             return "redirect:/login";
         }
-        Form form = formRepository.findByIdAndDeletedAtIsNull(id).orElse(null);
-        boolean editable = form != null && isEditable(form, employee);
-        boolean submitted = form != null && responseService.hasSubmitted(id, employee.getEmpNo());
-        if (form == null || !(editable || submitted)) {
-            // 마감/대상 변경으로 못 여는 폼이라도, 이미 제출한 이력이 있으면 읽기 전용으로는 보여준다.
+        Form form = formRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        boolean submitted = responseService.hasSubmitted(id, employee.getEmpNo());
+        // 대상이 아닌 설문은 제출 이력이 없는 한 열어주지 않는다.
+        if (!form.includes(employee) && !submitted) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        boolean editable = isEditable(form, employee);
+        if (!editable && !submitted) {
+            // 마감된 폼은 제출 이력이 있을 때만 읽기 전용으로 보여준다.
             return "redirect:/forms";
         }
 
@@ -142,7 +148,7 @@ public class FormController {
     }
 
     private static boolean isEditable(Form form, Employee employee) {
-        return form.isOpen() && form.getTarget().includes(employee.getType());
+        return form.isOpen() && form.includes(employee);
     }
 
     /** 마감된 폼이나 대상이 아닌 폼을 URL 로 직접 열어 제출하는 경우를 막는다. */

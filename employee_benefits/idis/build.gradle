@@ -32,9 +32,19 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.apache.poi:poi-ooxml:5.3.0'
+	// 관리자 PIN 해시(BCrypt). 전체 Spring Security 가 아니라 암호화 유틸만 쓴다.
+	implementation 'org.springframework.security:spring-security-crypto'
 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// 배포 스크립트가 늘 같은 이름을 찾도록 버전 접미사를 뺀다.
+// 로컬 설정(DB 비밀번호)은 배포 jar 에서만 뺀다 — processResources 에서 빼면
+// bootRun(로컬 개발)까지 설정을 잃고 뜨지 않는다.
+tasks.named('bootJar') {
+	archiveFileName = 'idis.jar'
+	exclude '**/application-local.properties'
 }

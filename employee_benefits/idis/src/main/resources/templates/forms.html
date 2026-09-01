@@ -5,51 +5,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>복리후생 신청 | IDIS</title>
+    <link rel="icon" type="image/png" sizes="32x32"
+        th:href="@{/image/favicon-32.png}" href="/image/favicon-32.png">
+    <link rel="icon" type="image/png"
+        th:href="@{/image/favicon.png}" href="/image/favicon.png">
     <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
     <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css">
     <link rel="stylesheet" th:href="@{/css/forms.css}" href="/css/forms.css">
 </head>
 
-<body class="app">
-    <div class="head">
-        <header class="top">
+<body class="app home">
+    <header class="home-header">
+        <div class="top-row">
             <img class="logo" th:src="@{/image/idis_logo.png}" src="/image/idis_logo.png" alt="IDIS">
             <div class="top-actions">
-                <a class="nav-link" th:href="@{/responses}" href="/responses">신청 내역</a>
+                <a class="admin-link" th:if="${isAdmin}" th:href="@{/admin}" href="/admin">관리자</a>
                 <form th:action="@{/logout}" action="/logout" method="post">
                     <button class="logout-btn" type="submit">로그아웃</button>
                 </form>
             </div>
-        </header>
-        <div class="head-title">
-            <p class="greeting">
-                <strong th:text="${loginUser.name}">홍길동</strong>님, 안녕하세요
-            </p>
-            <h1 class="title">신청 가능한 복리후생</h1>
         </div>
+        <div class="greeting">
+            <h1>안녕하세요, <span th:text="${loginUser.name}">홍길동</span>님</h1>
+            <p th:if="${!forms.isEmpty()}">신청 가능한 설문이 있습니다.</p>
+            <p th:if="${forms.isEmpty()}">지금은 신청 가능한 설문이 없습니다.</p>
+        </div>
+    </header>
+
+    <div class="mascot-area">
+        <img th:src="@{/image/robot-greeting.png}" src="/image/robot-greeting.png" alt="">
     </div>
 
-    <main class="page">
-        <ul class="cards" th:if="${!forms.isEmpty()}">
-            <li class="card" th:each="form : ${forms}">
-                <a class="card-link" th:href="@{/forms/{id}(id=${form.id})}" href="#">
-                    <span class="badge done" th:if="${submittedFormIds.contains(form.id)}">신청 완료</span>
-                    <h2 class="card-title" th:text="${form.title}">2026년 추석 선물 신청</h2>
-                    <p class="card-desc" th:text="${form.description}">설명</p>
-                    <p class="card-period" th:if="${form.endAt != null}"
-                        th:text="'~ ' + ${#temporals.format(form.endAt, 'yyyy.MM.dd')} + ' 마감'">~ 마감</p>
+    <div class="divider-line"></div>
+
+    <th:block th:if="${!forms.isEmpty()}">
+        <p class="section-label">진행 중인 설문</p>
+        <ul class="survey-cards">
+            <li th:each="form : ${forms}">
+                <a class="survey-card" th:href="@{/forms/{id}(id=${form.id})}" href="#">
+                    <span class="texts">
+                        <span class="title-row">
+                            <span class="name" th:text="${form.title}">2026 하반기 복리후생 신청</span>
+                            <span class="badge-dday"
+                                th:if="${form.daysUntilEnd() != null and form.daysUntilEnd() >= 0 and form.daysUntilEnd() <= 7}"
+                                th:text="${form.daysUntilEnd() == 0} ? 'D-DAY' : 'D-' + ${form.daysUntilEnd()}">D-3</span>
+                        </span>
+                        <span class="meta">
+                            <span th:if="${form.description}"
+                                th:text="${#strings.abbreviate(form.description, 20)} + ' · '">설명 · </span>
+                            <span th:if="${form.endAt != null}"
+                                th:text="${#temporals.format(form.endAt, 'M월 d일')} + ' 마감'">9월 5일 마감</span>
+                            <span th:if="${form.endAt == null}">상시 신청</span>
+                        </span>
+                    </span>
+                    <img class="chevron" th:src="@{/image/icon-chevron.svg}" src="/image/icon-chevron.svg" alt="">
                 </a>
             </li>
         </ul>
+    </th:block>
 
-        <div class="empty" th:if="${forms.isEmpty()}">
-            <div class="char-wrap">
-                <img class="char" th:src="@{/image/robot.png}" src="/image/robot.png" alt="">
-            </div>
-            <p>현재 신청할 수 있는 복리후생이 없습니다</p>
-        </div>
-    </main>
+    <div class="history-link">
+        <a class="btn-pill" th:href="@{/responses}" href="/responses">신청내역 보기 →</a>
+    </div>
 </body>
 
 </html>

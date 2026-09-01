@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+### 업로드된 선택지 이미지 (app.upload.dir)
+uploads/
+
+### 로컬 전용 설정 (비밀번호 포함)
+src/main/resources/application-local.properties
