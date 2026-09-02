@@ -250,6 +250,25 @@ sudo -u idis crontab -e
 
 ## 다시 배포할 때
 
+### 스크립트로 (권장)
+
+`deploy/deploy.ps1` 이 아래 수동 절차를 그대로 한다.
+처음 한 번 스크립트 상단의 `$ServerHost` / `$KeyPath` 를 채워 두면 이후로는 실행만 하면 된다.
+
+```powershell
+.\deploy\deploy.ps1              # 확인 프롬프트 → 빌드 → 업로드 → 교체 → 기동 확인
+.\deploy\deploy.ps1 -Yes         # 프롬프트 없이
+.\deploy\deploy.ps1 -SkipBuild   # 이미 만든 jar 를 그대로
+```
+
+기동 확인(`/login` 200)까지 하고, 실패하면 `systemctl status` 와 `journalctl` 을 띄운 뒤
+되돌리는 명령을 알려준다. 바꾸기 전 jar 는 `idis.jar.bak` 으로 남는다.
+
+> **스키마가 바뀐 배포에는 쓰지 않는다.** 스크립트는 DB 를 건드리지 않는다.
+> 아래 ALTER 를 먼저 넣고 실행한다.
+
+### 손으로 할 때
+
 ```bash
 # 로컬
 ./gradlew clean bootJar
@@ -332,6 +351,41 @@ SELECT emp_no, name, role, super_admin,
 
 > 잠금만 풀면 될 때는 `pin_fail_count = 0, pin_locked_until = NULL` 만 바꾼다.
 > `pin_hash` 에는 **원문 PIN 을 절대 넣지 않는다.** `$2` 로 시작하지 않으면 로그인할 수 없다.
+
+## 502 가 뜰 때
+
+nginx 는 살아 있는데 앱이 죽은 상태다. 먼저 서비스를 본다.
+
+```bash
+systemctl is-active idis          # inactive 면 앱이 꺼진 것
+sudo systemctl start idis
+sudo journalctl -u idis -n 50 --no-pager
+```
+
+### 자동 보안 업데이트가 앱을 멈추는 문제 (2026-09-02 발생)
+
+`apt-daily-upgrade` 가 `mysql-server` 를 올리면서 MySQL 을 재시작했는데,
+유닛에 `Requires=mysql.service` 가 있어 idis 도 함께 멈추고 **다시 올라오지 않았다.**
+`Requires=` 는 정지는 전파하지만 재시작은 보장하지 않는다.
+
+```
+06:38:48  mysql 정지 → idis 정지
+06:38:57  mysql 시작 → idis 는 그대로 멈춤   ← 4시간 반 502
+```
+
+지금은 아래로 고쳐 두었다. 유닛을 다시 만들 일이 있으면 이 형태를 유지한다.
+
+```ini
+After=network-online.target mysql.service
+Wants=network-online.target mysql.service   # Requires= 를 쓰지 않는다
+Restart=always                              # on-failure 로 두지 않는다
+```
+
+확인 방법 — MySQL 을 재시작해도 앱이 살아 있어야 한다.
+
+```bash
+sudo systemctl restart mysql && sleep 3 && systemctl is-active idis   # active
+```
 
 ## 자주 보는 곳
 

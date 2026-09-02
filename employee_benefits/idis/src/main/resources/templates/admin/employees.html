@@ -84,7 +84,8 @@
                         정렬 가능한 칸만 링크로 만든다. 누를 때마다 오름차순 → 내림차순 → 해제로 돌고,
                         검색·필터·상태는 그대로 들고 다닌다. 페이지는 0 으로 되돌린다.
                     -->
-                    <span class="col" th:each="c : ${columns}">
+                    <span class="col" th:each="c : ${columns}"
+                        th:classappend="${c.key == 'empNo'} ? 'emp-no'">
                         <!-- key 가 빈 칸은 정렬 대상이 아니라 글자만 그린다 -->
                         <span th:if="${c.key == ''}" th:text="${c.value}">전화번호</span>
                         <a th:unless="${c.key == ''}" class="sort-link"
@@ -93,8 +94,7 @@
                                 sort=${search.nextSort(c.key)}, dir=${search.nextDir(c.key)})}"
                             th:classappend="${search.dirOf(c.key) != null} ? 'is-sorted'" href="#">
                             <span th:text="${c.value}">이름</span>
-                            <span class="sort-arrow" th:if="${search.dirOf(c.key) != null}"
-                                th:text="${search.dirOf(c.key) == 'asc'} ? '▲' : '▼'">▲</span>
+                            <span class="sort-arrow" th:text="${search.arrowOf(c.key)}">⇅</span>
                         </a>
                     </span>
                     <span class="col-actions">관리</span>
@@ -111,6 +111,7 @@
                                  data-hire=${e.hireDate != null ? e.hireDate : ''},
                                  data-role=${e.role},
                                  data-delete-blocked=${deleteBlocked.containsKey(e.empNo) ? deleteBlocked.get(e.empNo) : ''}">
+                        <span class="col emp-no muted" th:text="${e.empNo}">20240001</span>
                         <span class="col name">
                             <span th:text="${e.name}">홍길동</span>
                             <!-- 슈퍼 관리자도 그냥 '관리자'다. 권한 구조는 화면에 드러내지 않는다 -->

@@ -61,9 +61,21 @@ public record EmployeeSearch(
         return "name".equals(sort) ? Sort.by(order) : Sort.by(order, Sort.Order.asc("name"));
     }
 
-    /** 이 칸의 현재 방향. 정렬 중이 아니면 null 이라 화살표를 그리지 않는다. */
+    /** 이 칸의 현재 방향. 정렬 중이 아니면 null 이다. */
     public String dirOf(String column) {
         return column.equals(sort) ? dir : null;
+    }
+
+    /**
+     * 헤더에 붙일 표시.
+     * 정렬 중이 아닐 때도 옅게 ⇅ 를 두어야 '누를 수 있다'는 것이 보인다.
+     */
+    public String arrowOf(String column) {
+        String current = dirOf(column);
+        if (current == null) {
+            return "⇅";
+        }
+        return ASC.equals(current) ? "▲" : "▼";
     }
 
     /** 헤더를 눌렀을 때 갈 정렬 칸. 내림차순이었으면 해제(null)한다. */

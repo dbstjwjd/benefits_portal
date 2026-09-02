@@ -114,6 +114,11 @@
                         th:disabled="${readOnly}">
 
                     <div th:case="'ADDRESS'" class="address">
+                        <!-- 기본 배송지로 채운 칸에만 안내를 붙인다 -->
+                        <p class="address-note"
+                            th:if="${defaultAddressKeys != null and defaultAddressKeys.contains(key)}">
+                            기본 배송지를 불러왔습니다. 다르면 수정해 주세요
+                        </p>
                         <div class="zip-row">
                             <input type="text" th:id="${key} + '_zipcode'" th:name="${key} + '_zipcode'"
                                 th:value="${values.get(key + '_zipcode')}" placeholder="우편번호" readonly
@@ -127,6 +132,10 @@
                         <input type="text" th:id="${key} + '_detail'" th:name="${key} + '_detail'"
                             th:value="${values.get(key + '_detail')}" placeholder="상세주소 (동/호수 등)"
                             th:disabled="${readOnly}">
+                        <label class="save-default" th:if="${!readOnly}">
+                            <input type="checkbox" th:name="${key} + '_saveDefault'" checked>
+                            <span>이 주소를 기본 배송지로 저장</span>
+                        </label>
                     </div>
 
                     <p class="unsupported" th:case="*"

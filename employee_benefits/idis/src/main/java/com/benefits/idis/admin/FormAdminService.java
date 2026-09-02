@@ -46,11 +46,13 @@ public class FormAdminService {
     };
 
     public FormListView list(FormSearch search) {
+        // 요약 카드는 살아 있는 폼 기준이라 삭제됨 탭에서도 같은 값을 쓴다
         List<Form> forms = formRepository.findAllWithTargets();
+        List<Form> source = search.deletedTab() ? formRepository.findDeletedWithTargets() : forms;
 
-        List<Form> matched = forms.stream()
+        List<Form> matched = source.stream()
                 .filter(form -> matchesKeyword(form, search.keyword()))
-                .filter(form -> matchesStatus(form, search.status()))
+                .filter(form -> search.deletedTab() || matchesStatus(form, search.status()))
                 .sorted(LIST_ORDER)
                 .toList();
 
@@ -79,7 +81,41 @@ public class FormAdminService {
                 form.isOpen(),
                 form.isClosed(),
                 responseRepository.countByFormId(form.getId()),
-                actives.stream().filter(form::includes).count());
+                actives.stream().filter(form::includes).count(),
+                form.isDeleted());
+    }
+
+    /**
+     * 폼 삭제.
+     * 응답이 있으면 지우지 않고 감춘다(soft). 지워 버리면 그 응답이 어느 폼의 것인지 알 수 없다.
+     * 응답이 0건이면 남길 것이 없으니 완전히 지운다. 잘못 만든 폼을 치우는 용도다.
+     */
+    @Transactional
+    public DeleteResult delete(Long id) {
+        Form form = formRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new IllegalArgumentException("폼을 찾을 수 없습니다"));
+        long responses = responseRepository.countByFormId(id);
+        if (responses > 0) {
+            form.softDelete();
+            return new DeleteResult(false, responses);
+        }
+        // 질문·선택지는 cascade 로 함께 지워진다. 응답이 없으니 남는 참조도 없다.
+        formRepository.delete(form);
+        return new DeleteResult(true, 0);
+    }
+
+    @Transactional
+    public void restore(Long id) {
+        Form form = formRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("폼을 찾을 수 없습니다"));
+        if (!form.isDeleted()) {
+            throw new IllegalArgumentException("삭제된 폼이 아닙니다");
+        }
+        form.restore();
+    }
+
+    /** 어느 쪽으로 지웠는지. 안내 문구를 고르는 데 쓴다. */
+    public record DeleteResult(boolean removed, long keptResponses) {
     }
 
     private static FormSummary summary(List<Form> forms) {

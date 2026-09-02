@@ -102,3 +102,70 @@
         });
     });
 })();
+
+/* 엑셀 모달: 컬럼 순서 이동 · 전체 선택 · 빈 선택 차단 */
+(() => {
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+    const form = $("#downloadForm");
+    if (!form) return;
+
+    const submit = $("#downloadSubmit");
+    const questionList = $("#questionList");
+    const toggleAll = $("#toggleAllQuestions");
+
+    /*
+     * 체크된 입력이 넘어가는 순서가 곧 엑셀 컬럼 순서다.
+     * 그래서 정렬을 따로 담지 않고 DOM 자체를 옮긴다.
+     */
+    $$(".orderable").forEach((list) => {
+        list.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-move]");
+            if (!btn) return;
+            const item = btn.closest("li");
+            const sibling = btn.dataset.move === "up"
+                ? item.previousElementSibling
+                : item.nextElementSibling;
+            if (!sibling) return;
+            if (btn.dataset.move === "up") list.insertBefore(item, sibling);
+            else list.insertBefore(sibling, item);
+            refreshOrderButtons(list);
+        });
+        refreshOrderButtons(list);
+    });
+
+    /* 맨 위·맨 아래에서는 갈 곳이 없으니 잠근다 */
+    function refreshOrderButtons(list) {
+        const items = $$("li", list);
+        items.forEach((item, i) => {
+            const up = $("[data-move='up']", item);
+            const down = $("[data-move='down']", item);
+            if (up) up.disabled = i === 0;
+            if (down) down.disabled = i === items.length - 1;
+        });
+    }
+
+    const checked = () => $$("input[type=checkbox][name]", form)
+        .filter((c) => c.name !== "includePending" && c.checked).length;
+
+    const refreshSubmit = () => {
+        submit.disabled = checked() === 0;
+    };
+
+    form.addEventListener("change", (e) => {
+        if (e.target.type === "checkbox") refreshSubmit();
+    });
+
+    if (toggleAll && questionList) {
+        toggleAll.addEventListener("click", () => {
+            const boxes = $$("input[type=checkbox]", questionList);
+            const turnOn = boxes.some((b) => !b.checked);
+            boxes.forEach((b) => { b.checked = turnOn; });
+            toggleAll.textContent = turnOn ? "전체 해제" : "전체 선택";
+            refreshSubmit();
+        });
+    }
+
+    refreshSubmit();
+})();

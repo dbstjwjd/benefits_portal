@@ -2,9 +2,11 @@ package com.benefits.idis.response;
 
 import com.benefits.idis.employee.Employee;
 import com.benefits.idis.form.Choice;
+import com.benefits.idis.common.PhoneFormat;
 import com.benefits.idis.form.Form;
 import com.benefits.idis.form.Question;
 import com.benefits.idis.form.QuestionConfig;
+import com.benefits.idis.form.QuestionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +19,18 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ResponseService {
+
+    /** 주소 질문 아래 '기본 배송지로 저장' 체크박스의 이름 꼬리. */
+    public static final String SAVE_DEFAULT_SUFFIX = "_saveDefault";
 
     private final ResponseRepository responseRepository;
     private final ObjectMapper objectMapper;
@@ -69,6 +76,41 @@ public class ResponseService {
      * 저장된 응답을 화면 입력값(input name → value) 형태로 펼친다.
      * 최초 작성이면 빈 map 이고, 화면은 이 map 하나만 보고 값을 채운다.
      */
+    /** 화면 입력값과, 그중 기본 배송지로 채운 주소 질문 키. 안내 문구를 그 칸에만 붙인다. */
+    public record FormValues(Map<String, String> values, Set<String> defaultAddressKeys) {
+    }
+
+    /**
+     * 폼 화면에 넣을 값. 저장된 응답을 펼친 뒤,
+     * 아직 비어 있는 주소 질문만 기본 배송지로 채운다. 저장된 답이 있으면 그대로 둔다.
+     */
+    public FormValues formValues(Form form, Employee employee) {
+        Map<String, String> values = loadValues(form.getId(), employee.getEmpNo());
+        Set<String> filled = new LinkedHashSet<>();
+        if (!employee.hasDefaultAddress()) {
+            return new FormValues(values, filled);
+        }
+        for (Question question : form.getQuestions()) {
+            if (question.getType() != QuestionType.ADDRESS) {
+                continue;
+            }
+            String key = "q" + question.getId();
+            boolean empty = isBlank(values.get(key + "_zipcode")) && isBlank(values.get(key + "_address"));
+            if (!empty) {
+                continue;
+            }
+            values.put(key + "_zipcode", employee.getDefaultZipcode());
+            values.put(key + "_address", employee.getDefaultAddress());
+            values.put(key + "_detail", trimmed(employee.getDefaultAddressDetail()));
+            filled.add(key);
+        }
+        return new FormValues(values, filled);
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
     public Map<String, String> loadValues(Long formId, String empNo) {
         Map<String, String> values = new HashMap<>();
         responseRepository.findByFormIdAndEmployeeEmpNo(formId, empNo).ifPresent(response -> {
@@ -176,17 +218,7 @@ public class ResponseService {
      * 숫자만 남겨 01 로 시작하는 10~11 자리일 때만 값을 주고, 아니면 null 이다.
      */
     private static String formatPhone(String value) {
-        if (value == null) {
-            return null;
-        }
-        String digits = value.replaceAll("[^0-9]", "");
-        if (!digits.startsWith("01") || digits.length() < 10 || digits.length() > 11) {
-            return null;
-        }
-        int middle = digits.length() - 7;
-        return digits.substring(0, 3) + "-"
-                + digits.substring(3, 3 + middle) + "-"
-                + digits.substring(3 + middle);
+        return PhoneFormat.normalize(value);
     }
 
     private static LocalDate parseDate(String value) {
@@ -222,7 +254,31 @@ public class ResponseService {
                 response.addAnswer(answer);
             }
         }
+        saveDefaultAddress(form, employee, params);
         // response 는 영속 상태이므로 커밋 시점에 답변 변경까지 함께 flush 된다. save() 재호출은 불필요.
+    }
+
+    /**
+     * 주소 질문 아래 체크박스가 켜져 있으면 그 주소를 기본 배송지로 남긴다.
+     * 주소 질문이 여럿이면 마지막으로 켠 것이 남는다.
+     * employee 는 영속 상태라 값만 바꾸면 커밋 때 함께 저장된다.
+     */
+    private void saveDefaultAddress(Form form, Employee employee, MultiValueMap<String, String> params) {
+        for (Question question : form.getQuestions()) {
+            if (question.getType() != QuestionType.ADDRESS) {
+                continue;
+            }
+            String key = "q" + question.getId();
+            if (params.getFirst(key + SAVE_DEFAULT_SUFFIX) == null) {
+                continue;
+            }
+            String zipcode = trimmed(params.getFirst(key + "_zipcode"));
+            String address = trimmed(params.getFirst(key + "_address"));
+            if (zipcode.isEmpty() || address.isEmpty()) {
+                continue;
+            }
+            employee.changeDefaultAddress(zipcode, address, trimmed(params.getFirst(key + "_detail")));
+        }
     }
 
     private Answer buildAnswer(Question question, MultiValueMap<String, String> params) {
@@ -335,6 +391,30 @@ public class ResponseService {
                 parsed.getOrDefault("_zipcode", ""),
                 parsed.getOrDefault("_address", ""),
                 parsed.getOrDefault("_detail", ""));
+    }
+
+    /**
+     * 주소를 한 줄로. 엑셀 한 칸에 그대로 넣는 형태다.
+     *   (35285) 대전 서구 동서대로 967 2동 1504호
+     * 값이 없는 조각은 건너뛰므로 빈 괄호나 이중 공백이 생기지 않는다.
+     */
+    public String addressOneLine(Answer answer) {
+        List<String> parts = addressParts(answer);
+        String zipcode = parts.get(0);
+        StringBuilder line = new StringBuilder();
+        if (!zipcode.isBlank()) {
+            line.append('(').append(zipcode).append(')');
+        }
+        for (String part : parts.subList(1, parts.size())) {
+            if (part.isBlank()) {
+                continue;
+            }
+            if (!line.isEmpty()) {
+                line.append(' ');
+            }
+            line.append(part);
+        }
+        return line.toString();
     }
 
     /** 배송업체 전달용 엑셀에서 우편번호를 따로 뽑을 수 있도록 구조를 유지해 저장한다. */

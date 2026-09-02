@@ -154,6 +154,15 @@ body.home .divider-line {
     padding: 4px 24px 32px;
 }
 
+/*
+ * 설문이 없을 때만 구분선 바로 아래에 버튼이 온다. 그때만 24px 을 준다.
+ * 설문이 있으면 사이에 목록이 들어가고 survey-cards 의 아래 여백(24px)이 이미 있어
+ * 여기까지 더하면 48px 이 된다.
+ */
+body.home .divider-line + .history-link {
+    padding-top: 24px;
+}
+
 /* ── 설문 작성 ─────────────────────────────────────────── */
 
 body.survey {
@@ -196,6 +205,104 @@ body.survey {
 .q-title .req {
     color: var(--required);
     font-size: 14px;
+}
+
+/* ── 신청내역 상단 기본 배송지 ─────────────────────────── */
+
+.default-address {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 24px 4px;
+    padding: 14px 16px;
+    background: var(--bg-soft);
+    border-radius: var(--radius);
+}
+
+.default-address .da-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.default-address .da-body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.default-address .da-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-strong);
+}
+
+.default-address .da-text.is-empty {
+    color: var(--text-placeholder);
+}
+
+.default-address .da-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.btn-text {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brand);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-text.is-danger {
+    color: var(--error);
+}
+
+/* 배송지 모달은 입력이 있어 조금 넓게 */
+dialog.da-modal {
+    width: min(400px, calc(100vw - 48px));
+    text-align: left;
+}
+
+dialog.da-modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* 기본 배송지를 불러왔을 때 주소 칸 위 안내 */
+.address-note {
+    margin-bottom: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+/* 주소 아래 '기본 배송지로 저장' */
+.save-default {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.save-default input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--brand);
 }
 
 /* 선택지 (라디오 / 체크박스 공통) */

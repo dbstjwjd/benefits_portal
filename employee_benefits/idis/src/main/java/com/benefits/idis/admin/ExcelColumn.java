@@ -3,6 +3,9 @@ package com.benefits.idis.admin;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.function.Function;
 
 /**
@@ -44,14 +47,18 @@ public enum ExcelColumn {
         return reader.apply(row);
     }
 
-    /** 화면에서 넘어온 키 목록을 순서대로 정리한다. 비어 있으면 기본값을 쓴다. */
-    public static List<ExcelColumn> parse(List<String> keys) {
+    /**
+     * 화면에서 넘어온 키를 **받은 순서 그대로** 칸으로 바꾼다.
+     * 순서가 곧 엑셀 컬럼 순서라 enum 선언 순서로 다시 정렬하면 안 된다.
+     * 파라미터가 아예 없을 때(주소창으로 직접 부른 경우)만 기본값을 쓴다.
+     */
+    public static List<ExcelColumn> parse(List<String> keys, boolean fromModal) {
         if (keys == null || keys.isEmpty()) {
-            return DEFAULTS;
+            // 모달에서 왔는데 비어 있으면 '하나도 안 고름'이 맞다
+            return fromModal ? List.of() : DEFAULTS;
         }
-        List<ExcelColumn> picked = Arrays.stream(values())
-                .filter(column -> keys.contains(column.key))
-                .toList();
-        return picked.isEmpty() ? DEFAULTS : picked;
+        Map<String, ExcelColumn> byKey = Arrays.stream(values())
+                .collect(Collectors.toMap(ExcelColumn::key, column -> column));
+        return keys.stream().map(byKey::get).filter(Objects::nonNull).toList();
     }
 }

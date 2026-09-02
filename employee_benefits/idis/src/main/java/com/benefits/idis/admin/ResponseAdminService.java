@@ -39,6 +39,18 @@ public class ResponseAdminService {
     private final ResponseService responseService;
 
     /** 폼 선택 드롭다운. 진행 중을 먼저 두고 마감이 가까운 순으로, 끝난 폼은 최근 마감 순으로 본다. */
+    /** 엑셀 모달에 뿌릴 질문 목록. 폼에 저장된 순서 그대로다. */
+    public List<ExportQuestion> exportQuestions(Long formId) {
+        return formRepository.findByIdAndDeletedAtIsNull(formId)
+                .map(form -> form.getQuestions().stream()
+                        .map(q -> new ExportQuestion(q.getId(), q.getTitle()))
+                        .toList())
+                .orElseGet(List::of);
+    }
+
+    public record ExportQuestion(Long id, String title) {
+    }
+
     public List<FormOption> options() {
         Map<Long, Long> counts = responseCounts();
         List<Employee> actives = employeeRepository.findActiveWithDepartment();

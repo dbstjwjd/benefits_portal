@@ -287,16 +287,45 @@
             </div>
 
             <div class="modal-body">
+                <!-- 체크된 항목이 넘어가는 순서가 곧 엑셀 컬럼 순서라 DOM 순서를 그대로 쓴다 -->
+                <input type="hidden" name="fromModal" value="true">
+
                 <p class="set-label">포함할 직원 정보</p>
-                <ul class="check-list">
+                <ul class="check-list orderable" data-group="columns">
                     <li th:each="c : ${columns}">
                         <label>
                             <input type="checkbox" name="columns" th:value="${c.key()}"
                                 th:checked="${defaultColumns.contains(c)}">
-                            <span th:text="${c.header()}">사번</span>
+                            <span th:text="${c.header()}" th:title="${c.header()}">사번</span>
                         </label>
+                        <span class="order-btns">
+                            <button type="button" class="order-btn" data-move="up" aria-label="위로">▲</button>
+                            <button type="button" class="order-btn" data-move="down" aria-label="아래로">▼</button>
+                        </span>
                     </li>
                 </ul>
+
+                <div class="modal-divider"></div>
+
+                <div class="set-label-row">
+                    <p class="set-label">포함할 질문</p>
+                    <button type="button" class="btn-text-sm" id="toggleAllQuestions">전체 해제</button>
+                </div>
+                <ul class="check-list orderable scrollable" data-group="questions" id="questionList">
+                    <li th:each="q : ${excelQuestions}">
+                        <label>
+                            <input type="checkbox" name="questions" th:value="${q.id()}" checked>
+                            <span class="ellipsis" th:text="${q.title()}" th:title="${q.title()}">질문</span>
+                        </label>
+                        <span class="order-btns">
+                            <button type="button" class="order-btn" data-move="up" aria-label="위로">▲</button>
+                            <button type="button" class="order-btn" data-move="down" aria-label="아래로">▼</button>
+                        </span>
+                    </li>
+                </ul>
+                <p class="check-empty" th:if="${excelQuestions.isEmpty()}">질문이 없습니다</p>
+
+                <div class="modal-divider"></div>
 
                 <div class="toggle-row">
                     <span>미응답자 포함</span>
@@ -309,7 +338,7 @@
 
             <div class="modal-foot">
                 <button class="btn-ghost" type="button" data-close>취소</button>
-                <button class="btn-solid" type="submit">다운로드</button>
+                <button class="btn-solid" type="submit" id="downloadSubmit">다운로드</button>
             </div>
         </form>
     </dialog>

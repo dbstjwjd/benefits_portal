@@ -554,10 +554,119 @@ body.admin {
     }
 }
 
+/* 평소에는 ⇅ 를 아주 옅게 두어 누를 수 있다는 것만 알린다 */
 .sort-arrow {
     font-size: 9px;
     line-height: 1;
+    color: var(--border);
+}
+
+/* 정렬 중인 칸만 ▲▼ 를 진하게 */
+.sort-link.is-sorted .sort-arrow {
+    color: var(--text-secondary);
+}
+
+/* ── 엑셀 모달: 컬럼 선택과 순서 ─────────────────────── */
+
+.modal-divider {
+    height: 1px;
+    margin: 16px 0;
+    background: var(--border);
+}
+
+.set-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.btn-text-sm {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--brand);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* 질문이 많으면 이 영역만 스크롤된다 */
+.check-list.scrollable {
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.check-list.orderable li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.check-list.orderable li label {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 제목이 길면 잘라내고 툴팁으로 보여준다 */
+.check-list.orderable .ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.order-btns {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.order-btn {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-base);
+    font-size: 8px;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.order-btn:disabled {
+    color: var(--border);
+    cursor: default;
+}
+
+@media (hover: hover) {
+    .order-btn:hover:not(:disabled) {
+        border-color: var(--brand);
+        color: var(--brand);
+    }
+}
+
+.check-empty {
+    font-size: 13px;
     color: var(--text-placeholder);
+}
+
+/* 목록 행 안에 들어가는 작은 버튼 (삭제됨 탭의 복구) */
+.btn-line.small {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 12px;
+}
+
+/* 사번은 8자리로 짧아 좁게 둔다 */
+.admin-table .col.emp-no {
+    flex: 0 0 92px;
 }
 
 .admin-table .rows {

@@ -5,6 +5,7 @@ import com.benefits.idis.employee.DepartmentRepository;
 import com.benefits.idis.employee.Employee;
 import com.benefits.idis.employee.EmployeeRepository;
 import com.benefits.idis.auth.PinService;
+import com.benefits.idis.common.PhoneFormat;
 import com.benefits.idis.employee.Role;
 import com.benefits.idis.response.ResponseRepository;
 import lombok.RequiredArgsConstructor;
@@ -58,12 +59,12 @@ public class EmployeeAdminService {
         if (employeeRepository.existsById(empNo)) {
             throw new IllegalArgumentException("이미 등록된 사번입니다");
         }
-        validateShared(form, null);
+        String phone = validateShared(form, null);
 
         employeeRepository.save(Employee.builder()
                 .empNo(empNo)
                 .name(form.getName().strip())
-                .phone(form.getPhone().strip())
+                .phone(phone)
                 .type(form.getType())
                 .role(Role.EMPLOYEE)
                 .department(departmentOf(form.getDepartmentId()))
@@ -75,9 +76,9 @@ public class EmployeeAdminService {
     public void update(String empNo, EmployeeForm form, Employee actor) {
         Employee employee = employeeRepository.findById(empNo)
                 .orElseThrow(() -> new IllegalArgumentException("직원을 찾을 수 없습니다"));
-        validateShared(form, empNo);
+        String phone = validateShared(form, empNo);
 
-        employee.update(form.getName().strip(), form.getPhone().strip(), form.getType(),
+        employee.update(form.getName().strip(), phone, form.getType(),
                 departmentOf(form.getDepartmentId()), form.getHireDate());
 
         // 역할 칸은 슈퍼 관리자에게만 그려지지만, 폼을 직접 만들어 보낼 수 있어 서버에서 다시 본다.
@@ -193,11 +194,18 @@ public class EmployeeAdminService {
         }
     }
 
-    private void validateShared(EmployeeForm form, String empNoOrNull) {
+    /** 공통 검증. 저장에 쓸 표준형 전화번호를 돌려준다. */
+    private String validateShared(EmployeeForm form, String empNoOrNull) {
         required(form.getName(), "이름을 입력해주세요");
-        String phone = required(form.getPhone(), "전화번호를 입력해주세요");
+        String input = required(form.getPhone(), "전화번호를 입력해주세요");
         if (form.getType() == null) {
             throw new IllegalArgumentException("구분을 선택해주세요");
+        }
+        // 표기를 맞춰 두지 않으면 010-1234-5678 과 01012345678 이 둘 다 통과해
+        // 같은 사람이 두 번 등록된다. UNIQUE 도 문자열이 달라 못 막는다.
+        String phone = PhoneFormat.normalize(input);
+        if (phone == null) {
+            throw new IllegalArgumentException("전화번호 형식이 올바르지 않습니다");
         }
         boolean duplicated = empNoOrNull == null
                 ? employeeRepository.existsByPhone(phone)
@@ -205,6 +213,7 @@ public class EmployeeAdminService {
         if (duplicated) {
             throw new IllegalArgumentException("이미 등록된 전화번호입니다");
         }
+        return phone;
     }
 
     private Department departmentOf(Long departmentId) {

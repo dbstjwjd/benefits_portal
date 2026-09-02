@@ -46,10 +46,12 @@
 
                 <!-- 상태는 링크로 이동해 현재 검색어를 유지한다 -->
                 <div class="segmented">
-                    <a th:each="s : ${ {'open','closed','all'} }"
+                    <a th:each="s : ${ {'open','closed','all','deleted'} }"
                         th:href="@{/admin/forms(keyword=${search.keyword}, status=${s})}"
                         th:classappend="${search.status == s} ? 'is-active'"
-                        th:text="${s == 'open'} ? '진행 중' : (${s == 'closed'} ? '마감' : '전체')">진행 중</a>
+                        th:text="${s == 'open'} ? '진행 중'
+                               : (${s == 'closed'} ? '마감'
+                               : (${s == 'all'} ? '전체' : '삭제됨'))">진행 중</a>
                 </div>
             </form>
 
@@ -94,7 +96,7 @@
                             </span>
                         </span>
 
-                        <span class="col-actions">
+                        <span class="col-actions" th:unless="${f.deleted()}">
                             <a class="icon-btn" th:href="@{/admin/forms/{id}/edit(id=${f.id()})}"
                                 href="#" aria-label="편집">
                                 <img th:src="@{/image/icon-edit.svg}" src="/image/icon-edit.svg" alt="">
@@ -103,6 +105,18 @@
                                 href="#" aria-label="응답 보기">
                                 <img th:src="@{/image/icon-eye.svg}" src="/image/icon-eye.svg" alt="">
                             </a>
+                            <button class="icon-btn" type="button" aria-label="삭제"
+                                th:attr="data-delete=${f.id()},
+                                         data-title=${f.title()},
+                                         data-responses=${f.responseCount()}">
+                                <img th:src="@{/image/icon-trash.svg}" src="/image/icon-trash.svg" alt="">
+                            </button>
+                        </span>
+                        <!-- 삭제됨 탭에서는 복구만 할 수 있다 -->
+                        <span class="col-actions" th:if="${f.deleted()}">
+                            <form th:action="@{/admin/forms/{id}/restore(id=${f.id()})}" method="post">
+                                <button class="btn-line small" type="submit">복구</button>
+                            </form>
                         </span>
                     </li>
                 </ul>
@@ -129,6 +143,24 @@
             </div>
         </main>
     </div>
+
+    <!-- 삭제 확인. 응답 수에 따라 문구가 갈린다 -->
+    <dialog class="admin-modal" id="deleteFormModal">
+        <form id="deleteFormForm" method="post">
+            <div class="modal-head">
+                <h2>폼 삭제</h2>
+                <button class="modal-close-x" type="button" data-close aria-label="닫기">&times;</button>
+            </div>
+            <p class="confirm-text" id="deleteFormWho">이 폼을 삭제할까요?</p>
+            <p class="confirm-sub" id="deleteFormNote"></p>
+            <div class="modal-foot">
+                <button class="btn-ghost" type="button" data-close>취소</button>
+                <button class="btn-danger" type="submit">삭제</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script th:src="@{/js/admin-forms.js}" src="/js/admin-forms.js"></script>
 </body>
 
 </html>

@@ -1,5 +1,6 @@
 package com.benefits.idis.admin;
 
+import com.benefits.idis.common.PhoneFormat;
 import com.benefits.idis.employee.Department;
 import com.benefits.idis.employee.DepartmentRepository;
 import com.benefits.idis.employee.Employee;
@@ -39,7 +40,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * 임직원 엑셀 업로드/다운로드.
@@ -52,8 +52,6 @@ public class EmployeeExcelService {
 
     public static final List<String> HEADERS =
             List.of("사번", "이름", "부서", "구분", "전화번호", "입사일");
-
-    private static final Pattern PHONE = Pattern.compile("^01[016789]-?\\d{3,4}-?\\d{4}$");
 
     /* ── 업로드 양식 서식. 여기 값들은 template() 에서만 쓴다 ── */
 
@@ -251,11 +249,13 @@ public class EmployeeExcelService {
                     typeText.isBlank() ? "구분 누락" : "구분 값 오류 (직접직/간접직)");
         };
 
-        String phone = text(row.getCell(4));
-        if (phone.isBlank()) {
+        String phoneText = text(row.getCell(4));
+        if (phoneText.isBlank()) {
             throw new IllegalArgumentException("전화번호 누락");
         }
-        if (!PHONE.matcher(phone).matches()) {
+        // 하이픈이 있든 없든 한 가지 표기로 맞춰서 담는다. 중복 검사도 이 값으로 한다.
+        String phone = PhoneFormat.normalize(phoneText);
+        if (phone == null) {
             throw new IllegalArgumentException("전화번호 형식 오류");
         }
         if (!seenPhone.add(phone)) {

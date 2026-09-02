@@ -57,6 +57,7 @@ public class FormController {
         }
 
         model.addAttribute("responses", responseService.findMyResponses(employee.getEmpNo()));
+        model.addAttribute("employee", employee);
         return "responses";
     }
 
@@ -80,8 +81,10 @@ public class FormController {
             return "redirect:/forms";
         }
 
+        ResponseService.FormValues prefilled = responseService.formValues(form, employee);
         model.addAttribute("form", form);
-        model.addAttribute("values", responseService.loadValues(id, employee.getEmpNo()));
+        model.addAttribute("values", prefilled.values());
+        model.addAttribute("defaultAddressKeys", prefilled.defaultAddressKeys());
         model.addAttribute("submitted", submitted);
         model.addAttribute("readOnly", !editable);
         return "form-detail";
@@ -106,6 +109,7 @@ public class FormController {
             // 입력한 값을 그대로 다시 보여준다. 화면은 values map 하나만 읽으므로 형태가 같다.
             model.addAttribute("form", form);
             model.addAttribute("values", params.toSingleValueMap());
+            model.addAttribute("defaultAddressKeys", java.util.Set.of());
             model.addAttribute("submitted", responseService.hasSubmitted(id, employee.getEmpNo()));
             model.addAttribute("readOnly", false);
             model.addAttribute("submitError", errors.getFirst());

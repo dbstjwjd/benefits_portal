@@ -66,7 +66,7 @@ public class PinService {
                     ? lockMessage(employee.getPinLockedUntil())
                     : "현재 PIN 이 일치하지 않습니다");
         }
-        validateNew(newPin, confirmPin, currentPin);
+        validateNew(employee, newPin, confirmPin);
         employee.assignPin(encoder.encode(newPin), false);
     }
 
@@ -75,19 +75,20 @@ public class PinService {
     public void changeAfterForcedLogin(String empNo, String newPin, String confirmPin) {
         Employee employee = employeeRepository.findById(empNo)
                 .orElseThrow(() -> new IllegalArgumentException("직원을 찾을 수 없습니다"));
-        validateNew(newPin, confirmPin, null);
+        validateNew(employee, newPin, confirmPin);
         employee.assignPin(encoder.encode(newPin), false);
     }
 
-    private void validateNew(String newPin, String confirmPin, String currentPin) {
+    private void validateNew(Employee employee, String newPin, String confirmPin) {
         if (!PinPolicy.isValidFormat(newPin)) {
             throw new IllegalArgumentException(PinPolicy.formatMessage());
         }
         if (!newPin.equals(confirmPin)) {
             throw new IllegalArgumentException("새 PIN 이 서로 다릅니다");
         }
-        if (currentPin != null && newPin.equals(currentPin)) {
-            throw new IllegalArgumentException("지금 쓰는 PIN 과 다른 값으로 정해주세요");
+        // 평문이 아니라 저장된 해시와 견준다. 강제 변경 화면은 현재 PIN 을 받지 않기 때문이다.
+        if (employee.hasPin() && encoder.matches(newPin, employee.getPinHash())) {
+            throw new IllegalArgumentException("현재 PIN 과 다른 값을 입력해 주세요");
         }
     }
 

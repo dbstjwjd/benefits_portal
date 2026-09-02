@@ -23,10 +23,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
- * 응답 내역 엑셀. 고정 칸 뒤에 질문이 순서대로 붙는다.
- * 주소는 배송업체에 넘길 때 우편번호를 따로 써야 해서 세 칸으로 나눈다.
+ * 응답 내역 엑셀.
+ * 컬럼 순서는 [고른 직원 정보] → [응답 시각·수정 여부] → [고른 질문] 이고,
+ * 각 묶음 안의 순서는 화면에서 정한 그대로 따른다.
+ * 주소는 한 칸에 "(우편번호) 기본주소 상세주소" 로 넣는다.
  */
 @Service
 @RequiredArgsConstructor
@@ -41,11 +45,12 @@ public class ResponseExcelService {
     private final ResponseRepository responseRepository;
     private final ResponseService responseService;
 
-    public byte[] export(Long formId, List<ResponseRow> rows, List<ExcelColumn> columns) {
+    public byte[] export(Long formId, List<ResponseRow> rows,
+                         List<ExcelColumn> columns, List<Long> questionIds) {
         Form form = formRepository.findByIdAndDeletedAtIsNull(formId)
                 .orElseThrow(() -> new IllegalArgumentException("폼을 찾을 수 없습니다"));
 
-        List<Question> questions = form.getQuestions();
+        List<Question> questions = pickQuestions(form, questionIds);
 
         Map<String, Response> byEmpNo = new HashMap<>();
         responseRepository.findWithEmployeeByFormId(formId)
@@ -71,18 +76,24 @@ public class ResponseExcelService {
         }
     }
 
+    /**
+     * 고른 질문만, 고른 순서대로.
+     * 파라미터가 없으면(주소창으로 직접 부른 경우) 폼의 원래 순서를 그대로 쓴다.
+     */
+    private static List<Question> pickQuestions(Form form, List<Long> questionIds) {
+        if (questionIds == null) {
+            return form.getQuestions();
+        }
+        Map<Long, Question> byId = form.getQuestions().stream()
+                .collect(Collectors.toMap(Question::getId, question -> question));
+        return questionIds.stream().map(byId::get).filter(Objects::nonNull).toList();
+    }
+
     private static List<String> headers(List<ExcelColumn> columns, List<Question> questions) {
         List<String> headers = new ArrayList<>(columns.stream().map(ExcelColumn::header).toList());
         headers.addAll(ALWAYS);
-        for (Question question : questions) {
-            if (question.getType() == QuestionType.ADDRESS) {
-                headers.add(question.getTitle() + " (우편번호)");
-                headers.add(question.getTitle() + " (기본주소)");
-                headers.add(question.getTitle() + " (상세주소)");
-            } else {
-                headers.add(question.getTitle());
-            }
-        }
+        // 주소도 한 칸이라 질문 제목을 그대로 쓴다
+        questions.forEach(question -> headers.add(question.getTitle()));
         return headers;
     }
 
@@ -99,11 +110,9 @@ public class ResponseExcelService {
 
         for (Question question : questions) {
             Answer answer = byQuestion.get(question.getId());
-            if (question.getType() == QuestionType.ADDRESS) {
-                cells.addAll(responseService.addressParts(answer));
-            } else {
-                cells.add(responseService.describe(answer));
-            }
+            cells.add(question.getType() == QuestionType.ADDRESS
+                    ? responseService.addressOneLine(answer)
+                    : responseService.describe(answer));
         }
         return cells;
     }

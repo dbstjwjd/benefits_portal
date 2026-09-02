@@ -77,6 +77,19 @@ public class Employee extends BaseEntity {
     @JoinColumn(name = "department_id")
     private Department department;
 
+    /*
+     * 기본 배송지. 주소 질문을 매번 다시 적지 않게 본인이 저장해 두는 값이다.
+     * 관리자 화면·엑셀에는 넣지 않는다. 개인 배송지라 볼 이유가 없다.
+     */
+    @Column(length = 10)
+    private String defaultZipcode;
+
+    @Column(length = 200)
+    private String defaultAddress;
+
+    @Column(length = 200)
+    private String defaultAddressDetail;
+
     public void update(String name, String phone, EmployeeType type, Department department, LocalDate hireDate) {
         this.name = name;
         this.phone = phone;
@@ -97,6 +110,26 @@ public class Employee extends BaseEntity {
 
     public boolean isAdmin() {
         return role == Role.ADMIN;
+    }
+
+    /* ── 기본 배송지 ─────────────────────────────────────── */
+
+    /** 우편번호와 주소가 모두 있어야 쓸 수 있는 값으로 본다. */
+    public boolean hasDefaultAddress() {
+        return defaultZipcode != null && !defaultZipcode.isBlank()
+                && defaultAddress != null && !defaultAddress.isBlank();
+    }
+
+    public void changeDefaultAddress(String zipcode, String address, String detail) {
+        this.defaultZipcode = zipcode;
+        this.defaultAddress = address;
+        this.defaultAddressDetail = detail;
+    }
+
+    public void clearDefaultAddress() {
+        this.defaultZipcode = null;
+        this.defaultAddress = null;
+        this.defaultAddressDetail = null;
     }
 
     /* ── PIN ─────────────────────────────────────────────── */

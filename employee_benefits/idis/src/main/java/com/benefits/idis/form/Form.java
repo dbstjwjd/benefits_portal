@@ -83,6 +83,19 @@ public class Form extends BaseEntity {
         this.status = FormStatus.OPEN;
     }
 
+    /** 응답이 있는 폼은 지우지 않고 감춘다. 응답 이력을 남겨 두기 위해서다. */
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public void restore() {
+        this.deletedAt = null;
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
     public void addQuestion(Question question) {
         questions.add(question);
         question.assignForm(this);

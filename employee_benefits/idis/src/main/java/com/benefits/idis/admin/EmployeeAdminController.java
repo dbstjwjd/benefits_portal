@@ -71,6 +71,7 @@ public class EmployeeAdminController {
 
         // 목록 헤더. 순서가 곧 화면 순서이고, key 가 빈 칸은 정렬하지 않는다.
         Map<String, String> columns = new LinkedHashMap<>();
+        columns.put("empNo", "사번");
         columns.put("name", "이름");
         columns.put("dept", "부서");
         columns.put("type", "구분");

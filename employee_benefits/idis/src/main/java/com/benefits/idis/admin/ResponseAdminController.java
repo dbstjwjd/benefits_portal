@@ -68,6 +68,8 @@ public class ResponseAdminController {
         model.addAttribute("departments", departmentRepository.findAll());
         model.addAttribute("columns", ExcelColumn.values());
         model.addAttribute("defaultColumns", ExcelColumn.DEFAULTS);
+        // 엑셀 모달의 '포함할 질문' 목록
+        model.addAttribute("excelQuestions", responseAdminService.exportQuestions(target));
         return "admin/responses";
     }
 
@@ -83,13 +85,18 @@ public class ResponseAdminController {
                                          @RequestParam(required = false) String keyword,
                                          @RequestParam(required = false) Long departmentId,
                                          @RequestParam(required = false) List<String> columns,
+                                         @RequestParam(required = false) List<Long> questions,
+                                         /* 모달에서 온 요청인지. 아무것도 안 골랐을 때와
+                                            주소창으로 직접 부른 경우를 구분한다. */
+                                         @RequestParam(defaultValue = "false") boolean fromModal,
                                          @RequestParam(defaultValue = "false") boolean includePending) {
         // 미응답자 포함 여부는 모달에서 고른 값이 화면 필터보다 우선한다
         String status = includePending ? ResponseSearch.ALL : ResponseSearch.ANSWERED;
         ResponseSearch search = new ResponseSearch(keyword, departmentId, status,
                 ResponseSearch.TAB_LIST, 0);
         List<ResponseRow> rows = responseAdminService.rowsForExport(formId, search);
-        byte[] body = responseExcelService.export(formId, rows, ExcelColumn.parse(columns));
+        byte[] body = responseExcelService.export(formId, rows,
+                ExcelColumn.parse(columns, fromModal), fromModal && questions == null ? List.of() : questions);
 
         String filename = "응답_" + formId + ".xlsx";
         String encoded = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");

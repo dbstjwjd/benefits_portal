@@ -17,7 +17,8 @@ public record FormRow(
         boolean open,
         boolean closed,
         long responseCount,
-        long targetCount
+        long targetCount,
+        boolean deleted
 ) {
 
     /** 구분·부서 조건이 모두 없으면 대상 칸에 배지 대신 '전체' 한 줄만 쓴다. */

@@ -52,6 +52,21 @@
         if (btn) setRole(btn.dataset.value);
     });
 
+    /*
+     * 전화번호는 저장할 때 서버가 표준형으로 바꾸지만,
+     * 입력 중에도 눈에 보이게 하이픈을 넣어 준다. (로그인 화면과 같은 방식)
+     */
+    const phoneInput = $("#f-phone");
+    if (phoneInput) {
+        phoneInput.addEventListener("input", () => {
+            const digits = phoneInput.value.replace(/[^0-9]/g, "").slice(0, 11);
+            let out = digits;
+            if (digits.length > 7) out = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+            else if (digits.length > 3) out = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+            phoneInput.value = out;
+        });
+    }
+
     /* 닫기 버튼 / 배경 클릭 공통 */
     $$("dialog").forEach((dialog) => {
         $$("[data-close]", dialog).forEach((btn) =>

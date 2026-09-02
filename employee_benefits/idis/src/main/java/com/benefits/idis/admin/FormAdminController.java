@@ -119,6 +119,26 @@ public class FormAdminController {
         }
     }
 
+    /**
+     * 삭제. 응답이 있으면 감추고(soft), 0건이면 완전히 지운다.
+     * 어느 쪽이었는지는 서비스가 정하고 여기서는 안내 문구만 고른다.
+     */
+    @PostMapping("/{id:\\d+}/delete")
+    public String delete(@PathVariable Long id, RedirectAttributes redirect) {
+        FormAdminService.DeleteResult result = formAdminService.delete(id);
+        redirect.addFlashAttribute("toast", result.removed()
+                ? "폼을 삭제했습니다"
+                : "폼을 목록에서 감췄습니다. 응답 " + result.keptResponses() + "건은 그대로 보관됩니다");
+        return "redirect:/admin/forms";
+    }
+
+    @PostMapping("/{id:\\d+}/restore")
+    public String restore(@PathVariable Long id, RedirectAttributes redirect) {
+        formAdminService.restore(id);
+        redirect.addFlashAttribute("toast", "폼을 복구했습니다");
+        return "redirect:/admin/forms?status=deleted";
+    }
+
     /** 응답자가 보는 화면 그대로 확인한다. 제출 버튼 없이 form-detail 을 읽기 전용으로 재사용한다. */
     @GetMapping("/{id:\\d+}/preview")
     public String preview(@PathVariable Long id, Model model) {

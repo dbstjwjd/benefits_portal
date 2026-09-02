@@ -23,6 +23,34 @@
         </a>
     </header>
 
+    <p class="toast ok" th:if="${addressToast}" th:text="${addressToast}"></p>
+    <p class="toast err" th:if="${addressError}" th:text="${addressError}"></p>
+
+    <!-- 기본 배송지. 주소 질문을 매번 다시 적지 않도록 본인이 관리한다 -->
+    <section class="default-address">
+        <p class="da-label">기본 배송지</p>
+
+        <div class="da-body" th:if="${employee.hasDefaultAddress()}">
+            <p class="da-text">
+                <span th:text="'(' + ${employee.defaultZipcode} + ')'">(06234)</span>
+                <span th:text="${employee.defaultAddress}">서울 강남구 테헤란로 123</span>
+                <span th:if="${!#strings.isEmpty(employee.defaultAddressDetail)}"
+                    th:text="${employee.defaultAddressDetail}">4층</span>
+            </p>
+            <div class="da-actions">
+                <button class="btn-text" type="button" id="editAddressBtn">수정</button>
+                <button class="btn-text is-danger" type="button" id="deleteAddressBtn">삭제</button>
+            </div>
+        </div>
+
+        <div class="da-body" th:unless="${employee.hasDefaultAddress()}">
+            <p class="da-text is-empty">등록된 기본 배송지가 없습니다</p>
+            <div class="da-actions">
+                <button class="btn-text" type="button" id="addAddressBtn">등록</button>
+            </div>
+        </div>
+    </section>
+
     <div class="chips" th:if="${!responses.isEmpty()}">
         <button class="chip is-active" type="button" data-filter="all">전체</button>
         <button class="chip" type="button" data-filter="open">진행중</button>
@@ -73,6 +101,87 @@
                 });
             });
         });
+    </script>
+    <!-- 등록 / 수정 -->
+    <dialog class="confirm da-modal" id="addressModal">
+        <h2 id="addressModalTitle">기본 배송지 등록</h2>
+        <form th:action="@{/responses/default-address}" action="/responses/default-address" method="post" novalidate>
+            <div class="zip-row">
+                <input type="text" id="da-zipcode" name="zipcode" placeholder="우편번호" readonly
+                    th:value="${employee.defaultZipcode}">
+                <button type="button" class="zip-btn" id="daPostcodeBtn">우편번호 검색</button>
+            </div>
+            <input type="text" id="da-address" name="address" placeholder="주소" readonly
+                th:value="${employee.defaultAddress}">
+            <input type="text" id="da-detail" name="detail" placeholder="상세주소 (동/호수 등)"
+                th:value="${employee.defaultAddressDetail}">
+            <p class="msg" id="da-msg"></p>
+            <div class="modal-actions">
+                <button class="btn-cancel" type="button" data-close>취소</button>
+                <button class="btn-primary" type="submit">저장</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- 삭제 확인 -->
+    <dialog class="confirm" id="addressDeleteModal">
+        <h2>기본 배송지를 삭제할까요?</h2>
+        <p>다음 신청부터는 주소를 다시 입력해야 합니다.</p>
+        <form th:action="@{/responses/default-address/delete}" action="/responses/default-address/delete" method="post">
+            <div class="modal-actions">
+                <button class="btn-cancel" type="button" data-close>취소</button>
+                <button class="btn-primary" type="submit">삭제</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script>
+        (() => {
+            const modal = document.getElementById("addressModal");
+            const removeModal = document.getElementById("addressDeleteModal");
+            const zip = document.getElementById("da-zipcode");
+            const road = document.getElementById("da-address");
+            const detail = document.getElementById("da-detail");
+            const msg = document.getElementById("da-msg");
+
+            const open = (title) => {
+                document.getElementById("addressModalTitle").textContent = title;
+                msg.textContent = "";
+                modal.showModal();
+            };
+
+            document.getElementById("addAddressBtn")?.addEventListener("click", () => open("기본 배송지 등록"));
+            document.getElementById("editAddressBtn")?.addEventListener("click", () => open("기본 배송지 수정"));
+            document.getElementById("deleteAddressBtn")?.addEventListener("click", () => removeModal.showModal());
+
+            [modal, removeModal].forEach((dialog) => {
+                dialog.querySelectorAll("[data-close]").forEach((btn) =>
+                    btn.addEventListener("click", () => dialog.close()));
+                dialog.addEventListener("click", (e) => {
+                    if (e.target === dialog) dialog.close();
+                });
+            });
+
+            // 폼 작성 화면과 같은 방식으로 우편번호를 고른다
+            document.getElementById("daPostcodeBtn").addEventListener("click", () => {
+                new daum.Postcode({
+                    oncomplete: (data) => {
+                        zip.value = data.zonecode;
+                        road.value = data.roadAddress || data.jibunAddress;
+                        msg.textContent = "";
+                        detail.focus();
+                    }
+                }).open();
+            });
+
+            modal.querySelector("form").addEventListener("submit", (e) => {
+                if (!zip.value.trim() || !road.value.trim()) {
+                    e.preventDefault();
+                    msg.textContent = "우편번호 검색으로 주소를 골라주세요";
+                }
+            });
+        })();
     </script>
 </body>
 
